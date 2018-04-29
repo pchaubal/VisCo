@@ -2,17 +2,19 @@
       use mpi
       use readsnap
       use fields
+      use constants
       implicit none
       
       ! Our programming variables
-      Integer :: N_sample = 20000
-      Integer :: downsample_size = 200000
+      Integer :: N_sample = 200
+      Integer :: downsample_size = 2000
       Real*4, allocatable :: Random_array(:,:), Random_sample_position(:,:)
       Real*4, allocatable :: xds(:,:), vds(:,:)
       Real*4, allocatable :: x(:,:), v(:,:)
       Real*4  :: Box_size = 60 ! in Mpc/h
       Real*8  :: a
-      Real*8  :: Lambda, radius, m,pi,G,c,h
+      Real*8  :: m 
+      
 
       ! Varialbles for the manager worker algorithm
       integer :: ierr
@@ -29,15 +31,15 @@
       character(len=50) :: filename ! format descriptor
       Integer :: i
 
-      COMMON /VARS/    Lambda,radius,m,pi,G,c,h
+      COMMON /VARS/    m
 
-      h      = 0.67
-      Lambda = (h/3.0) ! in Mpc
-      radius = 7.0/(Lambda)
+      ! h      = 0.67
+      ! Lambda = (h/3.0) ! in Mpc
+      ! radius = 7.0/(Lambda)
       m      = (128**3/downsample_size)*0.7146691620   ! in the units of 10^10 Msun
-      pi     = 3.14159265358979
-      G      = 43.0208   ! (Mpc/M_10sun)*(km/s^2)
-      c      =  3*10**5 !9.72*1.0d-15   ! Mpc/sec
+      ! pi     = 3.14159265358979
+      ! G      = 43.0208   ! (Mpc/M_10sun)*(km/s^2)
+      ! c      =  3*10**5 !9.72*1.0d-15   ! Mpc/sec
 
     
       allocate(Random_array(N_sample,3))

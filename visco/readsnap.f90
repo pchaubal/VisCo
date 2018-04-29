@@ -21,7 +21,7 @@ subroutine readposvel(positions,velocities,a)
    real*4,allocatable    :: vel(:,:), velocities(:,:)
 
 
-   filename= '/snapshots/snapshot_041'
+   filename= './snapshots/snapshot_041'
    ! filename= '../snapshot_021'
    ! print *,'opening...  '//filename(1:len_trim(filename))
    

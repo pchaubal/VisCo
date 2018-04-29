@@ -56,11 +56,11 @@ CONTAINS
   !==========================================================================================
 
   SUBROUTINE primary_fields(r,x,v,a,pf)
-
+    use constants
 
     IMPLICIT NONE
     ! Integer, intent(in) :: N_sample ! The number of sampled points in the simulation cube
-    Real*8, intent(in) :: a
+    Real*8, intent(in)  :: a
     REAL*4, INTENT(in)  :: x(:,:)
     REAL*4, INTENT(in)  :: v(:,:)
     REAL*4, INTENT(in)  :: r(3)
@@ -76,10 +76,10 @@ CONTAINS
     REAL*8  :: mod_rnrm,Wrnrm,xi_kernel
     INTEGER :: i,j,k
     INTEGER :: eta_n_ind, eta_m_ind
-    REAL*8  Lambda,radius,m,norm,pi,G,h,c,norm1
+    REAL*8  :: norm1,m,norm
     Real*8  :: dp
 
-    COMMON /VARS/    Lambda,radius,m,pi,G,c,h
+    COMMON /VARS/    m
 
     pf%rho         = 0.0
     pf%d_rho       = 0.0
@@ -238,13 +238,14 @@ CONTAINS
   !****************************************************************************************************************
 
   SUBROUTINE secondary_fields(pf,a,sf)
+    use constants
     implicit none
     TYPE(primaryfields), INTENT(in) :: pf
     TYPE(secondaryfields) :: sf
     INTEGER :: i,j,k
     REAL*8, INTENT(in) :: a
-    real*8 Lambda, radius, m,pi,G,norm2,h,c
-    COMMON /VARS/    Lambda,radius,m,pi,G,c,h 
+    real*8  :: m, norm2
+    COMMON /VARS/    m
 
     norm2 = (4.0*pi*G*a**2)/(2*Lambda**2*c**2)
     ! norm2 = (4.0*pi*G*a**2)/(2*Lambda**2)
@@ -302,6 +303,7 @@ CONTAINS
   ! !********************************************************************************************************************
 
   SUBROUTINE tertiary_fields(a,pf,sf,tf)
+    use constants
     implicit none
     TYPE(primaryfields),   INTENT(in) :: pf
     TYPE(secondaryfields), INTENT(in) :: sf
@@ -312,8 +314,8 @@ CONTAINS
     REAL*8 :: sum
     REAL*8 :: rho_bg
     Real*8 Hubble,Hubble0,omega_m0
-    Real*8 Lambda, radius,m,pi,G,c,h
-    COMMON /VARS/    Lambda,radius,m,pi,G,c,h
+    Real*8  :: m
+    COMMON /VARS/    m
 
     omega_m0 = 2.67d-1
     Hubble0  = 100*h !(3.24*h*1.0d-18)
@@ -395,7 +397,8 @@ CONTAINS
       ! write (x1,fmt) i1 ! converting integer to string using a 'internal file'
       ! filename = 'data/tertiary_fields'//trim(x1)//'.dat'
       ! open(unit = rank,file=filename)
-      write(rank+10,"(/ F15.6, F15.6, E15.6, E15.6, E15.6, E15.6)", advance='no') pf%rho, tf%delta, tf%theta, tf%As, tf%d2delta, tf%d2theta
+      write(rank+10,"(/ F15.6, F15.6, E15.6, E15.6, E15.6, E15.6)", advance='no') pf%rho, tf%delta, &
+      tf%theta, tf%As, tf%d2delta, tf%d2theta
       ! write(rank+10,*) rank, pf%rho
 
      ! close(rank) 
@@ -404,7 +407,7 @@ CONTAINS
   !*********************************************************************************************************************
 
   subroutine downsample(array,downsample_size,downsampled)
-  	USE IFPORT
+  	! USE IFPORT
     implicit none
     real :: array(:,:)
     real, allocatable :: downsampled(:,:)
