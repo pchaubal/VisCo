@@ -1,0 +1,27 @@
+#!/bin/bash
+# Set job parameters
+#BSUB -J visco
+#BSUB -o visco.o%J
+#BSUB -e visco.e%J
+
+# Set number of CPUs
+#BSUB -n 500
+
+
+
+
+cd /home/girish20/code/parallelcode/snap001
+
+make
+
+
+# Run 2lpt 
+mpirun -np 500 ./execute
+
+cd /home/girish20/code/data/snap
+cat tf*.dat > total.dat
+
+rm tf*
+
+# cd /home/girish20/code/postprocess
+# python cat.py snap001

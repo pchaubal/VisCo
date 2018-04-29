@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "../soundvels.py", line 65, in <module>
+    keep &=  tmp_pairs[j][0] <  (bin_no+1)*binsize
+KeyboardInterrupt
+Terminated

@@ -1,0 +1,541 @@
+rm *.mod readsnap.o fields.o visco.o
+rm execute
+rm ./data/*
+mpifort -c readsnap.f90
+mpifort -c fields.f90
+mpifort -c visco.f90
+mpifort -o execute readsnap.o fields.o visco.o 
+ sending particle id           1 to processor           1
+ sending particle id           2 to processor           2
+ sending particle id           3 to processor           3
+ sending particle id           4 to processor           4
+ sending particle id           5 to processor           5
+ sending particle id           6 to processor           6
+ sending particle id           7 to processor           7
+ sending particle id           8 to processor           8
+ sending particle id           9 to processor           9
+ sending particle id          10 to processor          10
+ sending particle id          11 to processor          11
+ sending particle id          12 to processor          12
+ sending particle id          13 to processor          13
+ sending particle id          14 to processor          14
+ sending particle id          15 to processor          15
+ sending particle id          16 to processor          16
+ sending particle id          17 to processor          17
+ sending particle id          18 to processor          18
+ sending particle id          19 to processor          19
+ sending particle id          20 to processor          20
+ sending particle id          21 to processor          21
+ sending particle id          22 to processor          22
+ sending particle id          23 to processor          23
+ Processor           2 Calculating           2
+ sending particle id          24 to processor          24
+ sending particle id          25 to processor          25
+ sending particle id          26 to processor          26
+ Processor          19 Calculating          19
+ sending particle id          27 to processor          27
+ sending particle id          28 to processor          28
+ sending particle id          29 to processor          29
+ sending particle id          30 to processor          30
+ sending particle id          31 to processor          31
+ sending particle id          32 to processor          32
+ sending particle id          33 to processor          33
+ sending particle id          34 to processor          34
+ sending particle id          35 to processor          35
+ sending particle id          36 to processor          36
+ sending particle id          37 to processor          37
+ sending particle id          38 to processor          38
+ sending particle id          39 to processor          39
+ sending particle id          40 to processor          40
+ sending particle id          41 to processor          41
+ sending particle id          42 to processor          42
+ sending particle id          43 to processor          43
+ sending particle id          44 to processor          44
+ sending particle id          45 to processor          45
+ sending particle id          46 to processor          46
+ sending particle id          47 to processor          47
+ Processor           1 Calculating           1
+ Processor          44 Calculating          44
+ sending particle id          48 to processor          48
+ sending particle id          49 to processor          49
+ sending particle id          50 to processor          50
+ sending particle id          51 to processor          51
+ sending particle id          52 to processor          52
+ sending particle id          53 to processor          53
+ sending particle id          54 to processor          54
+ sending particle id          55 to processor          55
+ sending particle id          56 to processor          56
+ sending particle id          57 to processor          57
+ sending particle id          58 to processor          58
+ sending particle id          59 to processor          59
+ sending particle id          60 to processor          60
+ sending particle id          61 to processor          61
+ sending particle id          62 to processor          62
+ sending particle id          63 to processor          63
+ sending particle id          64 to processor          64
+ sending particle id          65 to processor          65
+ sending particle id          66 to processor          66
+ sending particle id          67 to processor          67
+ sending particle id          68 to processor          68
+ sending particle id          69 to processor          69
+ sending particle id          70 to processor          70
+ sending particle id          71 to processor          71
+ sending particle id          72 to processor          72
+ sending particle id          73 to processor          73
+ sending particle id          74 to processor          74
+ sending particle id          75 to processor          75
+ sending particle id          76 to processor          76
+ sending particle id          77 to processor          77
+ Processor          46 Calculating          46
+ Processor          20 Calculating          20
+ sending particle id          78 to processor          78
+ Processor          10 Calculating          10
+ sending particle id          79 to processor          79
+ sending particle id          80 to processor          80
+ sending particle id          81 to processor          81
+ Processor          43 Calculating          43
+ Processor          45 Calculating          45
+ Processor          70 Calculating          70
+ Processor          76 Calculating          76
+ sending particle id          82 to processor          82
+ sending particle id          83 to processor          83
+ sending particle id          84 to processor          84
+ sending particle id          85 to processor          85
+ sending particle id          86 to processor          86
+ sending particle id          87 to processor          87
+ Processor          47 Calculating          47
+ sending particle id          88 to processor          88
+ sending particle id          89 to processor          89
+ sending particle id          90 to processor          90
+ sending particle id          91 to processor          91
+ sending particle id          92 to processor          92
+ sending particle id          93 to processor          93
+ sending particle id          94 to processor          94
+ sending particle id          95 to processor          95
+ sending particle id          96 to processor          96
+ sending particle id          97 to processor          97
+ sending particle id          98 to processor          98
+ sending particle id          99 to processor          99
+ sending particle id         100 to processor         100
+ sending particle id         101 to processor         101
+ sending particle id         102 to processor         102
+ sending particle id         103 to processor         103
+ sending particle id         104 to processor         104
+ sending particle id         105 to processor         105
+ sending particle id         106 to processor         106
+ sending particle id         107 to processor         107
+ sending particle id         108 to processor         108
+ sending particle id         109 to processor         109
+ sending particle id         110 to processor         110
+ sending particle id         111 to processor         111
+ Processor          21 Calculating          21
+ sending particle id         112 to processor         112
+ sending particle id         113 to processor         113
+ sending particle id         114 to processor         114
+ sending particle id         115 to processor         115
+ sending particle id         116 to processor         116
+ sending particle id         117 to processor         117
+ sending particle id         118 to processor         118
+ sending particle id         119 to processor         119
+ Processor          14 Calculating          14
+ sending particle id         120 to processor         120
+ sending particle id         121 to processor         121
+ sending particle id         122 to processor         122
+ sending particle id         123 to processor         123
+ sending particle id         124 to processor         124
+ sending particle id         125 to processor         125
+ sending particle id         126 to processor         126
+ sending particle id         127 to processor         127
+ sending particle id         128 to processor         128
+ sending particle id         129 to processor         129
+ sending particle id         130 to processor         130
+ sending particle id         131 to processor         131
+ Processor          71 Calculating          71
+ Processor          77 Calculating          77
+ Processor          48 Calculating          48
+ sending particle id         132 to processor         132
+ sending particle id         133 to processor         133
+ sending particle id         134 to processor         134
+ sending particle id         135 to processor         135
+ sending particle id         136 to processor         136
+ sending particle id         137 to processor         137
+ sending particle id         138 to processor         138
+ sending particle id         139 to processor         139
+ sending particle id         140 to processor         140
+ sending particle id         141 to processor         141
+ sending particle id         142 to processor         142
+ sending particle id         143 to processor         143
+ sending particle id         144 to processor         144
+ Processor         101 Calculating         101
+ sending particle id         145 to processor         145
+ sending particle id         146 to processor         146
+ sending particle id         147 to processor         147
+ sending particle id         148 to processor         148
+ sending particle id         149 to processor         149
+ sending particle id         150 to processor         150
+ sending particle id         151 to processor         151
+ sending particle id         152 to processor         152
+ sending particle id         153 to processor         153
+ sending particle id         154 to processor         154
+ sending particle id         155 to processor         155
+ sending particle id         156 to processor         156
+ sending particle id         157 to processor         157
+ sending particle id         158 to processor         158
+ sending particle id         159 to processor         159
+ sending particle id         160 to processor         160
+ sending particle id         161 to processor         161
+ sending particle id         162 to processor         162
+ sending particle id         163 to processor         163
+ sending particle id         164 to processor         164
+ sending particle id         165 to processor         165
+ sending particle id         166 to processor         166
+ sending particle id         167 to processor         167
+ sending particle id         168 to processor         168
+ sending particle id         169 to processor         169
+ sending particle id         170 to processor         170
+ sending particle id         171 to processor         171
+ sending particle id         172 to processor         172
+ Processor          22 Calculating          22
+ sending particle id         173 to processor         173
+ sending particle id         174 to processor         174
+ sending particle id         175 to processor         175
+ Processor          12 Calculating          12
+ sending particle id         176 to processor         176
+ sending particle id         177 to processor         177
+ sending particle id         178 to processor         178
+ sending particle id         179 to processor         179
+ sending particle id         180 to processor         180
+ sending particle id         181 to processor         181
+ sending particle id         182 to processor         182
+ sending particle id         183 to processor         183
+ sending particle id         184 to processor         184
+ sending particle id         185 to processor         185
+ sending particle id         186 to processor         186
+ sending particle id         187 to processor         187
+ sending particle id         188 to processor         188
+ sending particle id         189 to processor         189
+ sending particle id         190 to processor         190
+ sending particle id         191 to processor         191
+ sending particle id         192 to processor         192
+ sending particle id         193 to processor         193
+ sending particle id         194 to processor         194
+ sending particle id         195 to processor         195
+ sending particle id         196 to processor         196
+ sending particle id         197 to processor         197
+ sending particle id         198 to processor         198
+ sending particle id         199 to processor         199
+ Processor          49 Calculating          49
+ Processor         125 Calculating         125
+ Processor          72 Calculating          72
+ Processor          78 Calculating          78
+ Processor         102 Calculating         102
+ Processor           9 Calculating           9
+ Processor         149 Calculating         149
+ Processor          23 Calculating          23
+ Processor         172 Calculating         172
+ Processor         126 Calculating         126
+ Processor          79 Calculating          79
+ Processor          50 Calculating          50
+ Processor         150 Calculating         150
+ Processor         196 Calculating         196
+ Processor          73 Calculating          73
+ Processor          24 Calculating          24
+ Processor         103 Calculating         103
+ Processor           6 Calculating           6
+ Processor         127 Calculating         127
+ Processor          74 Calculating          74
+ Processor         148 Calculating         148
+ Processor         175 Calculating         175
+ Processor         128 Calculating         128
+ Processor          80 Calculating          80
+ Processor         176 Calculating         176
+ Processor         100 Calculating         100
+ Processor          51 Calculating          51
+ Processor          75 Calculating          75
+ Processor         197 Calculating         197
+ Processor          25 Calculating          25
+ Processor         129 Calculating         129
+ Processor           3 Calculating           3
+ Processor         177 Calculating         177
+ Processor         151 Calculating         151
+ Processor         104 Calculating         104
+ Processor          81 Calculating          81
+ Processor         198 Calculating         198
+ Processor          52 Calculating          52
+ Processor          82 Calculating          82
+ Processor         178 Calculating         178
+ Processor          26 Calculating          26
+ Processor         152 Calculating         152
+ Processor         130 Calculating         130
+ Processor           8 Calculating           8
+ Processor         153 Calculating         153
+ Processor          53 Calculating          53
+ Processor         105 Calculating         105
+ Processor          54 Calculating          54
+ Processor         199 Calculating         199
+ Processor          83 Calculating          83
+ Processor         106 Calculating         106
+ Processor          27 Calculating          27
+ Processor         179 Calculating         179
+ Processor         124 Calculating         124
+ Processor          18 Calculating          18
+ Processor          55 Calculating          55
+ Processor         154 Calculating         154
+ Processor          84 Calculating          84
+ Processor         180 Calculating         180
+ Processor         107 Calculating         107
+ Processor         155 Calculating         155
+ Processor          28 Calculating          28
+ Processor         131 Calculating         131
+ Processor          85 Calculating          85
+ Processor          11 Calculating          11
+ Processor          56 Calculating          56
+ Processor         108 Calculating         108
+ Processor         181 Calculating         181
+ Processor         156 Calculating         156
+ Processor          29 Calculating          29
+ Processor         132 Calculating         132
+ Processor         109 Calculating         109
+ Processor          86 Calculating          86
+ Processor           7 Calculating           7
+ Processor          57 Calculating          57
+ Processor         157 Calculating         157
+ Processor         182 Calculating         182
+ Processor          30 Calculating          30
+ Processor          87 Calculating          87
+ Processor         133 Calculating         133
+ Processor         158 Calculating         158
+ Processor         110 Calculating         110
+ Processor          16 Calculating          16
+ Processor          58 Calculating          58
+ Processor          88 Calculating          88
+ Processor         183 Calculating         183
+ Processor         111 Calculating         111
+ Processor          31 Calculating          31
+ Processor         159 Calculating         159
+ Processor         134 Calculating         134
+ Processor          59 Calculating          59
+ Processor          17 Calculating          17
+ Processor         112 Calculating         112
+ Processor         160 Calculating         160
+ Processor          89 Calculating          89
+ Processor          32 Calculating          32
+ Processor         184 Calculating         184
+ Processor          15 Calculating          15
+ Processor         135 Calculating         135
+ Processor         113 Calculating         113
+ Processor          60 Calculating          60
+ Processor          33 Calculating          33
+ Processor          90 Calculating          90
+ Processor         161 Calculating         161
+ Processor           4 Calculating           4
+ Processor          61 Calculating          61
+ Processor         185 Calculating         185
+ Processor         136 Calculating         136
+ Processor         114 Calculating         114
+ Processor         162 Calculating         162
+ Processor          13 Calculating          13
+ Processor          34 Calculating          34
+ Processor          91 Calculating          91
+ Processor         163 Calculating         163
+ Processor          62 Calculating          62
+ Processor         186 Calculating         186
+ Processor         137 Calculating         137
+ Processor         115 Calculating         115
+ Processor           5 Calculating           5
+ Processor          35 Calculating          35
+ Processor          92 Calculating          92
+ Processor         164 Calculating         164
+ Processor          63 Calculating          63
+ Processor         138 Calculating         138
+ Processor         187 Calculating         187
+ Processor          36 Calculating          36
+ Processor         116 Calculating         116
+ Processor          93 Calculating          93
+ Processor         165 Calculating         165
+ Processor         139 Calculating         139
+ Processor          64 Calculating          64
+ Processor         188 Calculating         188
+ Processor          37 Calculating          37
+ Processor         117 Calculating         117
+ Processor          94 Calculating          94
+ Processor         166 Calculating         166
+ Processor         189 Calculating         189
+ Processor         140 Calculating         140
+ Processor          65 Calculating          65
+ Processor          95 Calculating          95
+ Processor          38 Calculating          38
+ Processor         118 Calculating         118
+ Processor         167 Calculating         167
+ Processor          66 Calculating          66
+ Processor         190 Calculating         190
+ Processor          39 Calculating          39
+ Processor         141 Calculating         141
+ Processor         168 Calculating         168
+ Processor          96 Calculating          96
+ Processor         119 Calculating         119
+ Processor          67 Calculating          67
+ Processor         191 Calculating         191
+ Processor         142 Calculating         142
+ Processor          97 Calculating          97
+ Processor          40 Calculating          40
+ Processor         192 Calculating         192
+ Processor         169 Calculating         169
+ Processor         120 Calculating         120
+ Processor         143 Calculating         143
+ Processor          68 Calculating          68
+ Processor         193 Calculating         193
+ Processor          98 Calculating          98
+ Processor          41 Calculating          41
+ Processor         144 Calculating         144
+ Processor          69 Calculating          69
+ Processor         170 Calculating         170
+ Processor         121 Calculating         121
+ Processor         194 Calculating         194
+ Processor          99 Calculating          99
+ Processor          42 Calculating          42
+ Processor         171 Calculating         171
+ Processor         145 Calculating         145
+ Processor         122 Calculating         122
+ Processor         195 Calculating         195
+ Processor         146 Calculating         146
+ Processor         123 Calculating         123
+ Processor         173 Calculating         173
+ Processor         147 Calculating         147
+ Processor         174 Calculating         174
+ rho_bg   5.82000017166138     
+ delta = -0.995713188742068     
+ theta =  1.799507142164685E-006
+ As =  4.234066677995539E-005
+ d2delta =   1.697119284341225E-003
+ d2theta =  1.224747135820836E-004
+  
+ Processor         161 Calculating         200
+ rho_bg   5.82000017166138     
+ delta = -0.989507301296640     
+ theta = -3.458952245595007E-006
+ As =  1.876289876832587E-004
+ d2delta =   3.071466600541653E-003
+ d2theta = -2.337287298767172E-004
+  
+ Processor         119 Calculating         201
+ rho_bg   5.82000017166138     
+ delta = -0.951535027849334     
+ theta = -5.477416142248366E-007
+ As =  2.001872240815424E-003
+ d2delta =   7.101380571254838E-003
+ d2theta = -2.892908057429246E-005
+  
+ Processor         170 Calculating         202
+ rho_bg   5.82000017166138     
+ delta = -0.998681064593516     
+ theta =  3.898023215416635E-006
+ As =  5.159839494078403E-006
+ d2delta =   6.824867285334479E-004
+ d2theta =  3.618408523258482E-004
+  
+ Processor          89 Calculating         203
+ rho_bg   5.82000017166138     
+ delta = -0.986120566545898     
+ theta = -2.246405033015625E-006
+ As =  3.059206052092200E-004
+ d2delta =   3.785715043698499E-003
+ d2theta = -1.509645796468633E-004
+  
+ Processor          69 Calculating         204
+ rho_bg   5.82000017166138     
+ delta = -0.998162965228130     
+ theta =  2.975644250225759E-006
+ As =  8.327805269698572E-006
+ d2delta =   7.889978148578881E-004
+ d2theta =  2.619479518392494E-004
+  
+ Processor          88 Calculating         205
+ rho_bg   5.82000017166138     
+ delta = -0.973818112981040     
+ theta = -1.564397789776960E-006
+ As =  1.265189833773449E-003
+ d2delta =   8.311414760514405E-003
+ d2theta = -1.016054523936971E-004
+  
+ Processor         143 Calculating         206
+ rho_bg   5.82000017166138     
+ delta = -0.975824365102327     
+ theta = -7.035537937399680E-007
+ As =  8.106403733853084E-004
+ d2delta =   5.764330591454326E-003
+ d2theta = -6.022944008495309E-005
+  
+ Processor         151 Calculating         207
+ rho_bg   5.82000017166138     
+ delta = -0.954175880142523     
+ theta = -1.397703849068058E-006
+ As =  2.247547169005948E-003
+ d2delta =   8.422205420135427E-003
+ d2theta = -8.473172726447335E-005
+  
+ Processor         178 Calculating         208
+ rho_bg   5.82000017166138     
+ delta = -0.971832921781793     
+ theta =  1.993460156828178E-006
+ As =  9.518567481822091E-004
+ d2delta =   5.814233782980504E-003
+ d2theta =  1.730321783226631E-004
+  
+ Processor          10 Calculating         209
+ rho_bg   5.82000017166138     
+ delta = -0.943417385421087     
+ theta =  1.143872777918596E-006
+ As =  3.573348310624108E-003
+ d2delta =   1.084483653210134E-002
+ d2theta =  7.545151179445091E-005
+  
+ Processor         132 Calculating         210
+ rho_bg   5.82000017166138     
+ delta = -0.991323286524360     
+ theta =  1.523236291557427E-006
+ As =  1.610040616052424E-004
+ d2delta =   3.200598719086002E-003
+ d2theta =  9.135024145859139E-005
+  
+ Processor          19 Calculating         211
+ rho_bg   5.82000017166138     
+ delta = -0.993134322662517     
+ theta =  2.723097419860601E-006
+ As =  9.089665285164105E-005
+ d2delta =   2.288938350236538E-003
+ d2theta =  2.275143594240048E-004
+  
+ Processor         156 Calculating         212
+ rho_bg   5.82000017166138     
+ delta = -0.992976688000965     
+ theta =  6.901559423356106E-007
+ As =  1.154851087879672E-004
+ d2delta =   2.840783254680217E-003
+ d2theta =  4.867039518404087E-005
+  
+ Processor         138 Calculating         213
+ rho_bg   5.82000017166138     
+ delta = -0.876184049208617     
+ theta = -1.115237030923439E-006
+ As =  1.526894515820743E-002
+ d2delta =   2.119324771029128E-002
+ d2theta = -6.733401158859546E-005
+  
+ Processor          48 Calculating         214
+ rho_bg   5.82000017166138     
+ delta = -0.994592075564285     
+ theta =  4.834607545493320E-006
+ As =  4.850909713943355E-005
+ d2delta =   1.553331633673918E-003
+ d2theta =  3.864908618700539E-004
+  
+ Processor          43 Calculating         215
+ rho_bg   5.82000017166138     
+ delta = -0.871308639626650     
+ theta =  3.730299803221311E-007
+ As =  1.472489362215100E-002
+ d2delta =   1.966865280509343E-002
+ d2theta =  2.398047295959860E-005
+  
+ Processor          66 Calculating         216

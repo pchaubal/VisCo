@@ -1,0 +1,22 @@
+#!/bin/bash
+# Set job parameters
+#BSUB -J visco
+#BSUB -o visco.o%J
+#BSUB -e visco.e%J
+
+# Set number of CPUs
+#BSUB -n 200
+
+
+
+
+cd /home/girish20/code/
+
+make clean
+make
+# Run 2lpt 
+mpirun -np 200 ./execute
+
+cd /home/girish20/code/data
+cat ter*.dat > total.dat
+rm ter*
