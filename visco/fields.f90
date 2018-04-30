@@ -55,18 +55,21 @@ CONTAINS
   ! W fields at the given position r
   !==========================================================================================
 
-  SUBROUTINE primary_fields(r,x,v,a,pf)
+  SUBROUTINE primary_fields(r,snapdata,pf)
     use constants
+    use readsnap
 
     IMPLICIT NONE
     ! Integer, intent(in) :: N_sample ! The number of sampled points in the simulation cube
-    Real*8, intent(in)  :: a
-    REAL*4, INTENT(in)  :: x(:,:)
-    REAL*4, INTENT(in)  :: v(:,:)
+    ! Real*8, intent(in)  :: a
+    REAL*4, allocatable   :: x(:,:)
+    REAL*4, allocatable   :: v(:,:)
     REAL*4, INTENT(in)  :: r(3)
 
     REAL*4  :: d                    ! A parameter for euclidean dist
+
     TYPE(primaryfields) :: pf
+    Type(snapshotdata)  :: snapdata
 
     ! We now define the quantities required for calculation of W
     REAL*8  :: Wkernel
@@ -76,10 +79,10 @@ CONTAINS
     REAL*8  :: mod_rnrm,Wrnrm,xi_kernel
     INTEGER :: i,j,k
     INTEGER :: eta_n_ind, eta_m_ind
-    REAL*8  :: norm1,m,norm
+    REAL*8  :: norm1,norm
     Real*8  :: dp
 
-    COMMON /VARS/    m
+    ! COMMON /VARS/    m
 
     pf%rho         = 0.0
     pf%d_rho       = 0.0
@@ -94,12 +97,15 @@ CONTAINS
     pf%xi          = 0.0
 
 
-    !   print *, 'radius = ' , radius
+      ! print *, 'size = ' , size(x,1)
+    x = snapdata%positions
+    v = snapdata%velocities
 
     ! print *, "calculating xi field"
     DO eta_n_ind=1,SIZE(x,1)
+       ! print *, 'r and x', r,x(eta_n_ind,:)
        CALL euclidean_dist(r,x(eta_n_ind,:),d)
-       !       print *, radius
+             ! print *, d
        IF (d<radius) THEN
 
           !Sum the W first
@@ -107,6 +113,8 @@ CONTAINS
           pf%rho = pf%rho + Wkernel
           dp = dot_PRODUCT(r-x(eta_n_ind,:),r-x(eta_n_ind,:))
           ! PRINT *, "d,radius", d,radius
+
+          ! print *, pf%rho
 
           !Now sum the d_W
           DO i=1,3
@@ -209,15 +217,15 @@ CONTAINS
     END DO
 
     ! Normalize the fields now
-    norm  = (m*Lambda**3)/(a**3*(2*pi)**(3/2))
+    norm  = (snapdata%mass*Lambda**3)/(snapdata%a**3*(2*pi)**(3/2))
     pf%rho     = norm*pf%rho
-    ! print *,"Sum W", pf%rho
+    ! print *,"Sum W", pf%rho, norm
     ! print *
     pf%d_rho   = norm*pf%d_rho
     pf%dd_rho  = norm*pf%dd_rho
     pf%d2d_rho = norm*pf%d2d_rho
 
-    norm1 = (m**2*G)/(a**4*c**2) *(Lambda/(sqrt(2*pi)))**3
+    norm1 = (snapdata%mass**2*G)/(snapdata%a**4*c**2) *(Lambda/(sqrt(2*pi)))**3
     ! norm1 = (m**2*G)/(a**4) *(Lambda/(sqrt(2*pi)))**5
 
     pf%d_rho_d_phi = norm1*pf%d_rho_d_phi
@@ -244,8 +252,8 @@ CONTAINS
     TYPE(secondaryfields) :: sf
     INTEGER :: i,j,k
     REAL*8, INTENT(in) :: a
-    real*8  :: m, norm2
-    COMMON /VARS/    m
+    real*8  :: norm2
+    ! COMMON /VARS/    m
 
     norm2 = (4.0*pi*G*a**2)/(2*Lambda**2*c**2)
     ! norm2 = (4.0*pi*G*a**2)/(2*Lambda**2)
@@ -314,17 +322,17 @@ CONTAINS
     REAL*8 :: sum
     REAL*8 :: rho_bg
     Real*8 Hubble,Hubble0,omega_m0
-    Real*8  :: m
-    COMMON /VARS/    m
+    ! Real*8  :: m
+    ! COMMON /VARS/    m
 
     omega_m0 = 2.67d-1
     Hubble0  = 100*h !(3.24*h*1.0d-18)
     Hubble = Hubble0*sqrt(omega_m0/(a**3) + 1.0-omega_m0)
     ! rho_bg = (omega_m0/a**3)*((3.d0*Hubble0**2)/(8.d0*pi*G))
     rho_bg = 5.82/a**3
-    print *, "rho_bg", rho_bg
+    print *, "rho_bg  =", rho_bg
     tf%delta   = pf%rho/rho_bg - 1
-    print *, "delta =" , tf%delta
+    print *, "delta   =", tf%delta
 
     sum = 0
     DO i=1,3
@@ -332,7 +340,7 @@ CONTAINS
        ! print *, sum
     END DO
     tf%theta   = (-1/(Hubble*a))*sum
-    print *, "theta =", tf%theta
+    print *, "theta   =", tf%theta
 
     sum=0
     DO i = 1,3
@@ -344,13 +352,13 @@ CONTAINS
        !            print *, "sum i=", sf%dd_phi(i,i)      
     END DO
     tf%As      = (1.0/rho_bg)*sum
-    print *, "As =", tf%As
+    print *, "As      =", tf%As
     sum=0
     DO i=1,3
        sum = sum + pf%dd_rho(i,i)
     END DO
     tf%d2delta = (1/rho_bg)*sum
-    print *, "d2delta = ", tf%d2delta
+    print *, "d2delta =", tf%d2delta
     sum=0
     DO i=1,3
        DO j=1,3
@@ -363,20 +371,22 @@ CONTAINS
 
   END SUBROUTINE tertiary_fields
 
-  subroutine calculate_fields(r,x,v,a, rank)
+  subroutine calculate_fields(r,snapdata, rank)
+    use readsnap
     implicit none
-    type(primaryfields) :: pf
+    Integer :: rank
+    Real    :: r(3)
+    type(primaryfields)   :: pf
     type(secondaryfields) :: sf
-    type(tertiaryfields) :: tf
-    integer :: rank
-    Real   :: r(3)
-    Real   :: x(:,:),v(:,:)
-    Real*8 :: a
+    type(tertiaryfields)  :: tf
+    type(snapshotdata)    :: snapdata
+    ! Real    :: x(:,:),v(:,:)
+    ! Real*8  :: a
 
 
-    call primary_fields(r,x,v,a,pf)
-    call secondary_fields(pf,a,sf)
-    call tertiary_fields(a,pf,sf,tf)
+    call primary_fields(r,snapdata,pf)
+    call secondary_fields(pf,snapdata%a,sf)
+    call tertiary_fields(snapdata%a,pf,sf,tf)
     call write_to_file(pf,tf, rank)
 
   end subroutine calculate_fields
@@ -386,7 +396,7 @@ CONTAINS
     subroutine write_to_file(pf,tf,rank)
       implicit none
       type(tertiaryfields) :: tf
-      type(primaryfields) :: pf
+      type(primaryfields)  :: pf
       ! character(len=8) :: fmt, x1
       ! character(len=50) :: filename ! format descriptor
       integer :: rank
@@ -405,25 +415,6 @@ CONTAINS
     end subroutine write_to_file
 
   !*********************************************************************************************************************
-
-  subroutine downsample(array,downsample_size,downsampled)
-  	! USE IFPORT
-    implicit none
-    real :: array(:,:)
-    real, allocatable :: downsampled(:,:)
-    integer, intent(in) :: downsample_size
-    integer :: i,random_index
-    ! integer :: j
-    integer :: array_size
-
-    allocate(downsampled(downsample_size,3))
-    array_size = size(array,1)
-    do i=1,downsample_size
-      random_index =  int(rand(0)*(array_size+1-1))+1 
-      downsampled(i,:) = array(random_index,:)
-    end do
-
-  end subroutine downsample
 
 
 END MODULE fields

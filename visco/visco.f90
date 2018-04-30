@@ -3,18 +3,16 @@
       use readsnap
       use fields
       use constants
+      use utils
       implicit none
       
       ! Our programming variables
       Integer :: N_sample = 200
       Integer :: downsample_size = 2000
       Real*4, allocatable :: Random_array(:,:), Random_sample_position(:,:)
-      Real*4, allocatable :: xds(:,:), vds(:,:)
-      Real*4, allocatable :: x(:,:), v(:,:)
       Real*4  :: Box_size = 60 ! in Mpc/h
-      Real*8  :: a
-      Real*8  :: m 
       
+      type(snapshotdata) :: snapdata
 
       ! Varialbles for the manager worker algorithm
       integer :: ierr
@@ -31,17 +29,12 @@
       character(len=50) :: filename ! format descriptor
       Integer :: i
 
-      COMMON /VARS/    m
 
-      ! h      = 0.67
-      ! Lambda = (h/3.0) ! in Mpc
-      ! radius = 7.0/(Lambda)
-      m      = (128**3/downsample_size)*0.7146691620   ! in the units of 10^10 Msun
-      ! pi     = 3.14159265358979
-      ! G      = 43.0208   ! (Mpc/M_10sun)*(km/s^2)
-      ! c      =  3*10**5 !9.72*1.0d-15   ! Mpc/sec
 
-    
+
+
+      snapdata%filename = './snapshots/snapshot_041'
+
       allocate(Random_array(N_sample,3))
       allocate(Random_sample_position(N_sample,3))
 
@@ -94,10 +87,9 @@
           call Random_number(Random_array)
           Random_sample_position = Box_size*Random_array
 
-          call readposvel(x,v,a)
-          call downsample(x,downsample_size,xds)
-          call downsample(v,downsample_size,vds)
-          xds = xds/1000.0
+          call readposvel(snapdata)
+          call downsample_snap(snapdata,downsample_size)
+
 
           do 
             call MPI_RECV(p_idr,1, MPI_INT, rootprocess, MPI_ANY_TAG, MPI_comm_World, status, ierr)
@@ -111,7 +103,7 @@
 
             if (p_idr <= N_sample) then
               print *, 'Processor', rank, 'Calculating', p_idr
-              call calculate_fields(Random_sample_position(p_idr,:),xds,vds,a,rank)
+              call calculate_fields(Random_sample_position(p_idr,:),snapdata,rank)
             else
               print *, 'processor', rank, 'exiting in this loop'
               rank = -1
