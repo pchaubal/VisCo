@@ -42,9 +42,153 @@ CONTAINS
     REAL*4, DIMENSION(3), INTENT(in) ::  r, rn
     REAL*4, INTENT(out):: d
 
-    d = ( dot_PRODUCT(r-rn,r-rn) )**0.5
+    d = ( dot_product(r-rn,r-rn) )**0.5
     !   print *, d
   END SUBROUTINE euclidean_dist
+
+
+
+
+
+
+
+  SUBROUTINE calculate_xi(snapdata,xi_rshp)
+    use mpi
+    use readsnap
+    use constants
+    implicit none 
+    Type(snapshotdata)  :: snapdata
+    REAL*4              :: d                    ! A parameter for euclidean dist
+    REAL*4, allocatable :: x(:,:)
+    Real*4, allocatable :: xi(:), xi_sub(:,:), xi_rshp(:,:)
+
+    ! Varibles for calculation of the xi field
+    REAL*8              :: mod_rnrm,Wrnrm,xi_kernel
+    Integer             :: prtcl_id, eta_m_ind,i,j
+    Real                :: Box_size = 60
+    ! variables for parallelization
+    integer             :: ierr
+    integer             :: rank,processors,start_index,stop_index, size_x, ppp
+    
+
+    
+    size_x = Size(snapdata%positions,1)
+    !Tell each processor how many particles to calculate
+    call MPI_comm_rank(MPI_comm_World, rank, ierr)
+    call MPI_comm_size(MPI_comm_World, processors, ierr)
+    ppp = size_x/(processors)
+
+
+    ! Each processor at this point has received the positions data.
+    ! Reshape the data to its original form
+    allocate(x(size_x,3))  
+    x = snapdata%positions
+
+    ! print *, 'x=',x(1,:)
+
+    start_index = int((rank*ppp)+1)
+    stop_index  = int((rank+1)*ppp)
+    ! print *, 'rank start/stop index:', rank, start_index, stop_index
+
+
+
+    ! print *, 'x', x
+    allocate(xi_sub(ppp,3)) 
+     
+    DO prtcl_id = start_index, stop_index
+      xi_sub = 0.0
+
+
+      ! print *,'xisub1=',xi_sub(:,:)
+      do eta_m_ind=1, SIZE(x,1)
+        
+        !Periodic bondary conditions 
+         if (x(prtcl_id,1) < Lambda) then
+            if (x(eta_m_ind,1) > Box_size - Lambda) then
+              x(eta_m_ind,1) = x(eta_m_ind,1) - Box_size
+            end if
+         end if
+
+         if (x(prtcl_id,1) > Box_size - Lambda) then
+            if (x(eta_m_ind,1) < Lambda) then
+              x(eta_m_ind,1) = x(eta_m_ind,1) + Box_size
+            end if
+         end if
+
+         if (x(prtcl_id,2) < Lambda) then
+            if (x(eta_m_ind,2) > Box_size - Lambda) then
+              x(eta_m_ind,2) = x(eta_m_ind,2) - Box_size
+            end if
+         end if
+
+         if (x(prtcl_id,2) > Box_size - Lambda) then
+            if (x(eta_m_ind,2) < Lambda) then
+              x(eta_m_ind,2) = x(eta_m_ind,2) + Box_size
+            end if
+         end if
+
+         if (x(prtcl_id,3) < Lambda) then
+            if (x(eta_m_ind,3) > Box_size - Lambda) then
+              x(eta_m_ind,3) = x(eta_m_ind,3) - Box_size
+            end if
+         end if
+
+         if (x(prtcl_id,3) > Box_size - Lambda) then
+            if (x(eta_m_ind,3) < Lambda) then
+              x(eta_m_ind,3) = x(eta_m_ind,3) + Box_size
+            end if
+         end if
+        
+
+         Call euclidean_dist(x(prtcl_id,:),x(eta_m_ind,:),d)
+         If(d .le. radius .and. d > 0.1) then
+            mod_rnrm = (dot_product( x(prtcl_id,:)-x(eta_m_ind,:) , x(prtcl_id,:)-x(eta_m_ind,:) ))**0.5
+            Wrnrm = EXP( -0.5*Lambda**2*dot_product( x(prtcl_id,:)-x(eta_m_ind,:) , x(prtcl_id,:)-x(eta_m_ind,:) ) )
+            xi_kernel =( (1.0/mod_rnrm) * ERFC(Lambda*mod_rnrm/sqrt(2.0)) & 
+              + (2.0/pi)**0.5*Lambda*Wrnrm )*((1/mod_rnrm**2)*exp(-6*(mod_rnrm/radius)**6))!*GAMMA(mod_rnrm*Lambda)
+            do i=1,3
+                ! xi_sub(prtcl_id-rank*ppp,i) = xi_sub(prtcl_id-rank*ppp,i) + (x(prtcl_id-rank*ppp,i)-x(eta_m_ind,i))*xi_kernel
+              xi_sub(prtcl_id-rank*ppp,i) = i 
+            end do
+         end if
+
+      end do
+      ! print *,'xisub=',xi_sub(prtcl_id,:)
+
+    END DO
+    ! do j =1,ppp
+    !   print *, 'xi',xi_sub(j,:)
+    ! end do
+    ! print *, ''
+    ! print *,'xisub=',xi_sub
+    call MPI_Barrier(MPI_comm_World,ierr)
+
+    ! At this point each processor has calculated its chunk of xi field. Combine these chunks
+    allocate(xi(3*size_x))
+    call MPI_Allgather(xi_sub, ppp*3, Mpi_Real, xi, ppp*3, Mpi_Real, MPI_COMM_WORLD, ierr)
+    ! print *, 'Calculating the xi field'
+
+
+    ! Reshape this combined 1-D array to get back the calculated xi field
+    allocate(xi_rshp(size_x,3))
+    xi_rshp = Reshape(xi,(/size_x,3/))
+    ! print *, SIZE(xi,1)
+    ! call MPI_FINALIZE ( ierr )
+
+    call MPI_Barrier(MPI_COMM_WORLD,ierr)
+    ! print *, "xi field final", xi_rshp
+    
+
+
+21 END SUBROUTINE calculate_xi
+
+
+
+
+
+
+
+
 
   !==========================================================================================
   !                Calculate primary fields
@@ -109,9 +253,9 @@ CONTAINS
        IF (d<radius) THEN
 
           !Sum the W first
-          Wkernel = EXP( -0.5*Lambda**2*dot_PRODUCT(r-x(eta_n_ind,:),r-x(eta_n_ind,:)) )
+          Wkernel = EXP( -0.5*Lambda**2*dot_product(r-x(eta_n_ind,:),r-x(eta_n_ind,:)) )
           pf%rho = pf%rho + Wkernel
-          dp = dot_PRODUCT(r-x(eta_n_ind,:),r-x(eta_n_ind,:))
+          dp = dot_product(r-x(eta_n_ind,:),r-x(eta_n_ind,:))
           ! PRINT *, "d,radius", d,radius
 
           ! print *, pf%rho
@@ -155,9 +299,9 @@ CONTAINS
              IF(d .le. radius .and. d > 10.0) THEN
              	! print*, "calculating xi"
                 ! calculate xi
-                mod_rnrm = (dot_PRODUCT( x(eta_n_ind,:)-x(eta_m_ind,:) , x(eta_n_ind,:)-x(eta_m_ind,:) ))**0.5
+                mod_rnrm = (dot_product( x(eta_n_ind,:)-x(eta_m_ind,:) , x(eta_n_ind,:)-x(eta_m_ind,:) ))**0.5
                ! print *, "mod_rnrm =", mod_rnrm, eta_m_ind, eta_n_ind
-                Wrnrm = EXP( -0.5*Lambda**2*dot_PRODUCT( x(eta_n_ind,:)-x(eta_m_ind,:) , x(eta_n_ind,:)-x(eta_m_ind,:) ) )
+                Wrnrm = EXP( -0.5*Lambda**2*dot_product( x(eta_n_ind,:)-x(eta_m_ind,:) , x(eta_n_ind,:)-x(eta_m_ind,:) ) )
 !                print *, "Wrnrm = ", Wrnrm
                 xi_kernel =( (1.0/mod_rnrm) * ERFC(Lambda*mod_rnrm/sqrt(2.0)) & 
                 	+ (2.0/pi)**0.5*Lambda*Wrnrm )*((1/mod_rnrm**2)*exp(-6*(mod_rnrm/radius)**6))!*GAMMA(mod_rnrm*Lambda)
