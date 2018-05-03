@@ -7,7 +7,7 @@ implicit none
       real*4,allocatable  ::  velocities(:,:)
       real*8              ::  a
       real*8              ::  mass
-      real*4              ::  n_particles
+      integer*4           ::  n_particles
    end type snapshotdata
 
 
@@ -20,7 +20,7 @@ subroutine readposvel(snapdata)
    real*8             :: a
    real*8             :: redshift
    integer*4          :: unused(34)
-   integer*4          :: N
+   integer            :: N
    real*4,allocatable :: pos(:,:)
    real*4,allocatable :: vel(:,:)
 
@@ -44,7 +44,7 @@ subroutine readposvel(snapdata)
 
    snapdata%a           = a
    snapdata%mass        = massarr(1)
-   snapdata%n_particles = N
+   snapdata%n_particles = int(N)
 
 
    allocate(snapdata%positions(1:N,1:3))

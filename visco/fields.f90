@@ -6,7 +6,7 @@ MODULE fields
      REAL*8, DIMENSION(3)      ::  d_rho
      REAL*8, DIMENSION(3,3)    ::  dd_rho
      REAL*8, DIMENSION(3,3)    ::  d2d_rho
-     REAL*8, DIMENSION(3)      ::  xi
+     ! REAL*8, DIMENSION(3)      ::  xi
      REAL*8, DIMENSION(3,3)    ::  dd_sigma
      REAL*8, DIMENSION(3)      ::  p
      REAL*8, DIMENSION(3,3)    ::  d_pi
@@ -52,23 +52,28 @@ CONTAINS
 
 
 
-  SUBROUTINE calculate_xi(snapdata,xi_rshp)
+  SUBROUTINE calculate_xi(snapdata,xi)
     use mpi
     use readsnap
     use constants
     implicit none 
     Type(snapshotdata)  :: snapdata
     REAL*4              :: d                    ! A parameter for euclidean dist
-    REAL*4, allocatable :: x(:,:)
-    Real*4, allocatable :: xi(:), xi_sub(:,:), xi_rshp(:,:)
+    Real*4              :: r1(3), r2(3)
+    Real*4, allocatable :: xi(:,:), xi_sub(:,:)
+    Integer             :: xi_ind
+    REAL*4              :: x(snapdata%n_particles,3)
 
     ! Varibles for calculation of the xi field
     REAL*8              :: mod_rnrm,Wrnrm,xi_kernel
-    Integer             :: prtcl_id, eta_m_ind,i,j
+    Integer             :: prtcl_id, eta_m_ind,i=0,j
     Real                :: Box_size = 60
     ! variables for parallelization
     integer             :: ierr
     integer             :: rank,processors,start_index,stop_index, size_x, ppp
+    Real*4              :: xisend(4)=0.0, xisub_recv(4)=0.0
+    integer             :: status(MPI_STATUS_SIZE),index
+
     
 
     
@@ -81,7 +86,8 @@ CONTAINS
 
     ! Each processor at this point has received the positions data.
     ! Reshape the data to its original form
-    allocate(x(size_x,3))  
+    ! allocate(x(size_x,3))
+    ! x = 0.0  
     x = snapdata%positions
 
     ! print *, 'x=',x(1,:)
@@ -91,68 +97,83 @@ CONTAINS
     ! print *, 'rank start/stop index:', rank, start_index, stop_index
 
 
+    ! print *, 'hi', snapdata%n_particles, size(snapdata%positions,1)
 
     ! print *, 'x', x
     allocate(xi_sub(ppp,3)) 
      
+    ! print *, 'starting the loop'
     DO prtcl_id = start_index, stop_index
       xi_sub = 0.0
+      r1 = x(prtcl_id,:)
 
+      xi_ind = prtcl_id-rank*ppp
 
       ! print *,'xisub1=',xi_sub(:,:)
-      do eta_m_ind=1, SIZE(x,1)
+      do eta_m_ind=1, size(snapdata%positions,1)
+
+        r2 = x(eta_m_ind,:)
+
         
         !Periodic bondary conditions 
-         if (x(prtcl_id,1) < Lambda) then
-            if (x(eta_m_ind,1) > Box_size - Lambda) then
-              x(eta_m_ind,1) = x(eta_m_ind,1) - Box_size
+         if (r1(1) < Lambda) then
+            if (r2(1) > Box_size - Lambda) then
+              r2(1) = r2(1) - Box_size
             end if
          end if
 
-         if (x(prtcl_id,1) > Box_size - Lambda) then
-            if (x(eta_m_ind,1) < Lambda) then
-              x(eta_m_ind,1) = x(eta_m_ind,1) + Box_size
+         if (r1(1) > Box_size - Lambda) then
+            if (r2(1) < Lambda) then
+              r2(1) = r2(1) + Box_size
             end if
          end if
 
-         if (x(prtcl_id,2) < Lambda) then
-            if (x(eta_m_ind,2) > Box_size - Lambda) then
-              x(eta_m_ind,2) = x(eta_m_ind,2) - Box_size
+         if (r1(2) < Lambda) then
+            if (r2(2) > Box_size - Lambda) then
+              r2(2) = r2(2) - Box_size
             end if
          end if
 
-         if (x(prtcl_id,2) > Box_size - Lambda) then
-            if (x(eta_m_ind,2) < Lambda) then
-              x(eta_m_ind,2) = x(eta_m_ind,2) + Box_size
+         if (r1(2) > Box_size - Lambda) then
+            if (r2(2) < Lambda) then
+              r2(2) = r2(2) + Box_size
             end if
          end if
 
-         if (x(prtcl_id,3) < Lambda) then
-            if (x(eta_m_ind,3) > Box_size - Lambda) then
-              x(eta_m_ind,3) = x(eta_m_ind,3) - Box_size
+         if (r1(3) < Lambda) then
+            if (r2(3) > Box_size - Lambda) then
+              r2(3) = r2(3) - Box_size
             end if
          end if
 
-         if (x(prtcl_id,3) > Box_size - Lambda) then
-            if (x(eta_m_ind,3) < Lambda) then
-              x(eta_m_ind,3) = x(eta_m_ind,3) + Box_size
+         if (r1(3) > Box_size - Lambda) then
+            if (r2(3) < Lambda) then
+              r2(3) = r2(3) + Box_size
             end if
          end if
         
-
-         Call euclidean_dist(x(prtcl_id,:),x(eta_m_ind,:),d)
+        ! ! print *, 'PBC have been implemented'
+         Call euclidean_dist(r1,r2,d)
          If(d .le. radius .and. d > 0.1) then
-            mod_rnrm = (dot_product( x(prtcl_id,:)-x(eta_m_ind,:) , x(prtcl_id,:)-x(eta_m_ind,:) ))**0.5
-            Wrnrm = EXP( -0.5*Lambda**2*dot_product( x(prtcl_id,:)-x(eta_m_ind,:) , x(prtcl_id,:)-x(eta_m_ind,:) ) )
-            xi_kernel =( (1.0/mod_rnrm) * ERFC(Lambda*mod_rnrm/sqrt(2.0)) & 
-              + (2.0/pi)**0.5*Lambda*Wrnrm )*((1/mod_rnrm**2)*exp(-6*(mod_rnrm/radius)**6))!*GAMMA(mod_rnrm*Lambda)
+            
+            mod_rnrm = sqrt(dot_product( r1-r2 , r1-r2 ))
+            
+            Wrnrm = EXP( -0.5*Lambda**2*dot_product( r1-r2 , r1-r2 ) )
+            
+            xi_kernel = (  (1.0/mod_rnrm)*ERFC(Lambda*mod_rnrm/sqrt(2.0)) & 
+              + sqrt(2.0/pi)*Lambda*Wrnrm )*((1/mod_rnrm**2)*exp(-6*(mod_rnrm/radius)**6)  )!*GAMMA(mod_rnrm*Lambda)
+            
             do i=1,3
-                ! xi_sub(prtcl_id-rank*ppp,i) = xi_sub(prtcl_id-rank*ppp,i) + (x(prtcl_id-rank*ppp,i)-x(eta_m_ind,i))*xi_kernel
-              xi_sub(prtcl_id-rank*ppp,i) = i 
+
+              xi_sub(xi_ind,i) = xi_sub(xi_ind,i) + (r1(i)-r2(i))*xi_kernel
+              ! xis(i) = 1.0 
             end do
+
+
          end if
 
       end do
+      ! print *, 'done',prtcl_id
       ! print *,'xisub=',xi_sub(prtcl_id,:)
 
     END DO
@@ -161,26 +182,52 @@ CONTAINS
     ! end do
     ! print *, ''
     ! print *,'xisub=',xi_sub
+    print *, "xi sub has been calculated."
+
     call MPI_Barrier(MPI_comm_World,ierr)
-
     ! At this point each processor has calculated its chunk of xi field. Combine these chunks
-    allocate(xi(3*size_x))
-    call MPI_Allgather(xi_sub, ppp*3, Mpi_Real, xi, ppp*3, Mpi_Real, MPI_COMM_WORLD, ierr)
-    ! print *, 'Calculating the xi field'
 
 
-    ! Reshape this combined 1-D array to get back the calculated xi field
-    allocate(xi_rshp(size_x,3))
-    xi_rshp = Reshape(xi,(/size_x,3/))
-    ! print *, SIZE(xi,1)
-    ! call MPI_FINALIZE ( ierr )
+    allocate(xi(size_x,3))
+    if (rank == 0) then
+      ! receive the particles and arrange them in proper order in xi
+      xi = 0.0
+      xisub_recv=0.0
 
-    call MPI_Barrier(MPI_COMM_WORLD,ierr)
-    ! print *, "xi field final", xi_rshp
-    
+      !Filling the value of xi_sub of root into xi
+      do j=start_index,stop_index
+        xi(j,:) = xi_sub(j-start_index+1,:)
+      end do
+
+      !Filling xi with xisub from all other processors
+      do j=1,ppp*(processors-1)
+        Call Mpi_recv(xisub_recv, 4, Mpi_Real,MPI_any_source,Mpi_any_tag, MPI_comm_World,status,ierr)
+        ! print *, 'xisub_recv', xisub_recv
+        index = xisub_recv(4)
+        xi(index,1:3) = xisub_recv(1:3)
+      end do
+
+      ! call MPI_BCAST(xi, Size(xi), Mpi_Real, 0, MPI_comm_World, IERR)
+    else
+      ! send the xi field values to the root processor
+      xisend=0.0
+      do i=start_index,stop_index
+        xisend(1:3) = xi_sub(i-start_index+1,:)
+        xisend(4)   = i
+        ! print *, 'xisend',xisend
+        Call Mpi_send(xisend, 4, Mpi_Real, 0, rank, MPI_comm_World,ierr)
+      end do
+
+    end if
+
+    call MPI_BCAST(xi, Size(xi), Mpi_Real, 0, MPI_comm_World, IERR)
+
+    ! print *, 'xi=',xi
+
+    print *, 'xi field calculation done...'
 
 
-21 END SUBROUTINE calculate_xi
+  END SUBROUTINE calculate_xi
 
 
 
@@ -199,7 +246,7 @@ CONTAINS
   ! W fields at the given position r
   !==========================================================================================
 
-  SUBROUTINE primary_fields(r,snapdata,pf)
+  SUBROUTINE primary_fields(r,snapdata,xi,pf)
     use constants
     use readsnap
 
@@ -208,8 +255,10 @@ CONTAINS
     ! Real*8, intent(in)  :: a
     REAL*4, allocatable   :: x(:,:)
     REAL*4, allocatable   :: v(:,:)
-    REAL*4, INTENT(in)  :: r(3)
-
+    REAL*4, INTENT(in)    :: r(3),xi(:,:)
+    Real*4                :: r2(3)
+    Real                  :: Box_size = 60
+    
     REAL*4  :: d                    ! A parameter for euclidean dist
 
     TYPE(primaryfields) :: pf
@@ -224,7 +273,7 @@ CONTAINS
     INTEGER :: i,j,k
     INTEGER :: eta_n_ind, eta_m_ind
     REAL*8  :: norm1,norm
-    Real*8  :: dp
+    ! Real*8  :: dp
 
     ! COMMON /VARS/    m
 
@@ -238,27 +287,69 @@ CONTAINS
     pf%d2d_pi      = 0.0
     pf%dd_sigma    = 0.0
     pf%d_rho_d_phi = 0.0
-    pf%xi          = 0.0
 
 
       ! print *, 'size = ' , size(x,1)
-    x = snapdata%positions
+    ! allocate(x(snapdata%n_particles,3))
+    ! x = snapdata%positions
+    allocate(v(snapdata%n_particles,3))
     v = snapdata%velocities
 
     ! print *, "calculating xi field"
-    DO eta_n_ind=1,SIZE(x,1)
+    DO eta_n_ind=1,snapdata%n_particles
+       r2 = snapdata%positions(eta_n_ind,:)
        ! print *, 'r and x', r,x(eta_n_ind,:)
-       CALL euclidean_dist(r,x(eta_n_ind,:),d)
-             ! print *, d
+       !Periodic bondary conditions 
+       if (r(1) < Lambda) then
+          if (r2(1) > Box_size - Lambda) then
+            r2(1) = r2(1) - Box_size
+          end if
+       end if
+
+       if (r(1) > Box_size - Lambda) then
+          if (r2(1) < Lambda) then
+            r2(1) = r2(1) + Box_size
+          end if
+       end if
+
+       if (r(2) < Lambda) then
+          if (r2(2) > Box_size - Lambda) then
+            r2(2) = r2(2) - Box_size
+          end if
+       end if
+
+       if (r(2) > Box_size - Lambda) then
+          if (r2(2) < Lambda) then
+            r2(2) = r2(2) + Box_size
+          end if
+       end if
+
+       if (r(3) < Lambda) then
+          if (r2(3) > Box_size - Lambda) then
+            r2(3) = r2(3) - Box_size
+          end if
+       end if
+
+       if (r(3) > Box_size - Lambda) then
+          if (r2(3) < Lambda) then
+            r2(3) = r2(3) + Box_size
+          end if
+       end if
+
+
+
+
+       CALL euclidean_dist(r,r2,d)
+             ! print *,'d=', d
        IF (d<radius) THEN
 
           !Sum the W first
-          Wkernel = EXP( -0.5*Lambda**2*dot_product(r-x(eta_n_ind,:),r-x(eta_n_ind,:)) )
+          Wkernel = EXP( -0.5*Lambda**2*dot_product(r-r2,r-r2) )
           pf%rho = pf%rho + Wkernel
-          dp = dot_product(r-x(eta_n_ind,:),r-x(eta_n_ind,:))
+          ! dp = dot_product(r-x(eta_n_ind,:),r-x(eta_n_ind,:))
           ! PRINT *, "d,radius", d,radius
 
-          ! print *, pf%rho
+          ! print *, 'pf%rho', pf%rho
 
           !Now sum the d_W
           DO i=1,3
@@ -270,9 +361,9 @@ CONTAINS
           DO i=1,3
              DO j=1,3
                 IF (i==j) THEN
-                   dd_Wkernel(i,i) = Lambda**2*Wkernel*(Lambda**2*(r(i)-x(eta_n_ind,i))**2 - 1)
+                   dd_Wkernel(i,i) = Lambda**2*Wkernel*(Lambda**2*(r(i)-r2(i))**2 - 1)
                 ELSE
-                   dd_Wkernel(i,j) = Lambda**2*Wkernel*(Lambda**2*(r(i)-x(eta_n_ind,i))*(r(j)-x(eta_n_ind,j)))
+                   dd_Wkernel(i,j) = Lambda**2*Wkernel*(Lambda**2*(r(i)-r2(i))*(r(j)-r2(j)))
                 END IF
                 pf%dd_rho(i,j) = pf%dd_rho(i,j) + dd_Wkernel(i,j)
              END DO
@@ -282,35 +373,14 @@ CONTAINS
           DO i=1,3
              DO j=1,3
                 IF (i==j) THEN
-                   d2d_Wkernel(i,i) = Lambda**2*( d_Wkernel(i)*(Lambda**2*(r(i)-x(eta_n_ind,i))**2 - 1) &
-                        + Wkernel*Lambda**2*2*(r(i)-x(eta_n_ind,i)) )
+                   d2d_Wkernel(i,i) = Lambda**2*( d_Wkernel(i)*(Lambda**2*(r(i)-r2(i))**2 - 1) &
+                        + Wkernel*Lambda**2*2*(r(i)-r2(i)) )
                 ELSE
-                   d2d_Wkernel(i,j) = Lambda**2*( d_Wkernel(i)*(Lambda**2*(r(i)-x(eta_n_ind,i))*(r(j)-x(eta_n_ind,j))) &
-                        + Wkernel*Lambda**2*(r(j)-x(eta_n_ind,j)) )
+                   d2d_Wkernel(i,j) = Lambda**2*( d_Wkernel(i)*(Lambda**2*(r(i)-r2(i))*(r(j)-r2(j))) &
+                        + Wkernel*Lambda**2*(r(j)-r2(j)) )
                 END IF
                 pf%d2d_rho(i,j) = pf%d2d_rho(i,j) + d2d_Wkernel(i,j)
              END DO
-          END DO
-          ! Calculate the xi field now by constructing another spehere of around x(i,:)
-          DO eta_m_ind=1, SIZE(x,1)
-             CALL euclidean_dist(x(eta_n_ind,:),x(eta_m_ind,:),d)
-!             print *, d, radius
-
-             IF(d .le. radius .and. d > 10.0) THEN
-             	! print*, "calculating xi"
-                ! calculate xi
-                mod_rnrm = (dot_product( x(eta_n_ind,:)-x(eta_m_ind,:) , x(eta_n_ind,:)-x(eta_m_ind,:) ))**0.5
-               ! print *, "mod_rnrm =", mod_rnrm, eta_m_ind, eta_n_ind
-                Wrnrm = EXP( -0.5*Lambda**2*dot_product( x(eta_n_ind,:)-x(eta_m_ind,:) , x(eta_n_ind,:)-x(eta_m_ind,:) ) )
-!                print *, "Wrnrm = ", Wrnrm
-                xi_kernel =( (1.0/mod_rnrm) * ERFC(Lambda*mod_rnrm/sqrt(2.0)) & 
-                	+ (2.0/pi)**0.5*Lambda*Wrnrm )*((1/mod_rnrm**2)*exp(-6*(mod_rnrm/radius)**6))!*GAMMA(mod_rnrm*Lambda)
-               ! print *, "mod_rnrm = ", mod_rnrm,"xi_kernel = ", xi_kernel
-                DO i=1,3
-                   pf%xi(i) = pf%xi(i) + (x(eta_n_ind,1)-x(eta_m_ind,1))*xi_kernel
-                  ! print *, pf%xi(i)
-                END DO
-             END IF
           END DO
 
           ! Calculate the pi fields now
@@ -349,10 +419,10 @@ CONTAINS
           ! print *, "here1"
           DO i=1,3
              DO j=1,3
-                pf%d_rho_d_phi(i,j) = pf%d_rho_d_phi(i,j) + d_Wkernel(i)*pf%xi(j)
+                pf%d_rho_d_phi(i,j) = pf%d_rho_d_phi(i,j) + d_Wkernel(i)*xi(eta_n_ind,j)
                ! print *,  d_Wkernel(i), pf%xi(j)
              END DO
-             ! print *, pf%d_rho_d_phi
+             ! print *, 'pf%d_rho_d_phi', pf%d_rho_d_phi
           END DO
           ! print *, eta_n_ind
        ! ELSE
@@ -362,8 +432,8 @@ CONTAINS
 
     ! Normalize the fields now
     norm  = (snapdata%mass*Lambda**3)/(snapdata%a**3*(2*pi)**(3/2))
-    pf%rho     = norm*pf%rho
     ! print *,"Sum W", pf%rho, norm
+    pf%rho     = norm*pf%rho
     ! print *
     pf%d_rho   = norm*pf%d_rho
     pf%dd_rho  = norm*pf%dd_rho
@@ -515,11 +585,12 @@ CONTAINS
 
   END SUBROUTINE tertiary_fields
 
-  subroutine calculate_fields(r,snapdata, rank)
+  subroutine calculate_fields(r,snapdata,xi,rank)
     use readsnap
     implicit none
     Integer :: rank
     Real    :: r(3)
+    Real*4, intent(in)    :: xi(:,:)
     type(primaryfields)   :: pf
     type(secondaryfields) :: sf
     type(tertiaryfields)  :: tf
@@ -528,7 +599,7 @@ CONTAINS
     ! Real*8  :: a
 
 
-    call primary_fields(r,snapdata,pf)
+    call primary_fields(r,snapdata,xi,pf)
     call secondary_fields(pf,snapdata%a,sf)
     call tertiary_fields(snapdata%a,pf,sf,tf)
     call write_to_file(pf,tf, rank)

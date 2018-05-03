@@ -7,10 +7,12 @@
       implicit none
       
       ! Our programming variables
-      Integer :: N_sample = 200
-      Integer :: downsample_size = 2000
+      Integer :: N_sample = 20000
+      Integer :: downsample_size = 20000
       Real*4, allocatable :: Random_array(:,:), Random_sample_position(:,:)
       Real*4  :: Box_size = 60 ! in Mpc/h
+      Real, allocatable  :: xi(:,:)
+
       
       type(snapshotdata) :: snapdata
 
@@ -42,7 +44,14 @@
       call MPI_comm_size(MPI_comm_World, processors, ierr)
       call MPI_comm_rank(MPI_comm_World, rank, ierr)
       
-      
+
+      call readposvel(snapdata)
+      call downsample_snap(snapdata,downsample_size)
+
+
+      call calculate_xi(snapdata,xi)
+
+      ! print *, xi
       if (rank == rootprocess) then
           
           ! write the position file
@@ -87,8 +96,6 @@
           call Random_number(Random_array)
           Random_sample_position = Box_size*Random_array
 
-          call readposvel(snapdata)
-          call downsample_snap(snapdata,downsample_size)
 
 
           do 
@@ -103,7 +110,7 @@
 
             if (p_idr <= N_sample) then
               print *, 'Processor', rank, 'Calculating', p_idr
-              call calculate_fields(Random_sample_position(p_idr,:),snapdata,rank)
+              call calculate_fields(Random_sample_position(p_idr,:),snapdata,xi,rank)
             else
               print *, 'processor', rank, 'exiting in this loop'
               rank = -1
@@ -119,6 +126,5 @@
 
       end if
       call MPI_FINALIZE ( ierr )
-      stop
     end Program visco
 

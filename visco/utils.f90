@@ -22,7 +22,7 @@ contains
       snapdata%positions  = xds
       snapdata%velocities = vds
       snapdata%mass       = snapdata%mass*(snapdata%n_particles/downsample_size)
-  
+      snapdata%n_particles = downsample_size
   end subroutine downsample_snap
 
 
