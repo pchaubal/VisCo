@@ -585,10 +585,10 @@ CONTAINS
 
   END SUBROUTINE tertiary_fields
 
-  subroutine calculate_fields(r,snapdata,xi,rank)
+  subroutine calculate_fields(r,snapdata,xi,rank,pid)
     use readsnap
     implicit none
-    Integer :: rank
+    Integer :: rank,pid
     Real    :: r(3)
     Real*4, intent(in)    :: xi(:,:)
     type(primaryfields)   :: pf
@@ -602,19 +602,19 @@ CONTAINS
     call primary_fields(r,snapdata,xi,pf)
     call secondary_fields(pf,snapdata%a,sf)
     call tertiary_fields(snapdata%a,pf,sf,tf)
-    call write_to_file(pf,tf, rank)
+    call write_to_file(pf,tf, rank,pid)
 
   end subroutine calculate_fields
 
   ! !********************************************************************************************************************
 
-    subroutine write_to_file(pf,tf,rank)
+    subroutine write_to_file(pf,tf,rank, pid)
       implicit none
       type(tertiaryfields) :: tf
       type(primaryfields)  :: pf
       ! character(len=8) :: fmt, x1
       ! character(len=50) :: filename ! format descriptor
-      integer :: rank
+      integer :: rank,pid
       ! integer :: i1
 
       ! fmt = '(I3.3)' ! an integer of width 5 with zeros at the left
@@ -622,7 +622,7 @@ CONTAINS
       ! write (x1,fmt) i1 ! converting integer to string using a 'internal file'
       ! filename = 'data/tertiary_fields'//trim(x1)//'.dat'
       ! open(unit = rank,file=filename)
-      write(rank+10,"(/ F15.6, F15.6, E15.6, E15.6, E15.6, E15.6)", advance='no') pf%rho, tf%delta, &
+      write(rank+10,"(/ I7 F15.6, F15.6, E15.6, E15.6, E15.6, E15.6)", advance='no') pid, pf%rho, tf%delta, &
       tf%theta, tf%As, tf%d2delta, tf%d2theta
       ! write(rank+10,*) rank, pf%rho
 

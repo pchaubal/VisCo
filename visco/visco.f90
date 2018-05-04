@@ -4,10 +4,12 @@
       use fields
       use constants
       use utils
+      use readsampoint
       implicit none
       
       ! Our programming variables
-      Integer :: N_sample = 20000
+      Integer :: N_sample = 560000
+      Real*4              :: smp_pts(560000,3)
       Integer :: downsample_size = 20000
       Real*4, allocatable :: Random_array(:,:), Random_sample_position(:,:)
       Real*4  :: Box_size = 60 ! in Mpc/h
@@ -37,8 +39,8 @@
 
       snapdata%filename = './snapshots/snapshot_041'
 
-      allocate(Random_array(N_sample,3))
-      allocate(Random_sample_position(N_sample,3))
+      ! allocate(Random_array(N_sample,3))
+      ! allocate(Random_sample_position(N_sample,3))
 
       call MPI_INIT ( ierr )
       call MPI_comm_size(MPI_comm_World, processors, ierr)
@@ -55,13 +57,13 @@
       if (rank == rootprocess) then
           
           ! write the position file
-          call Random_number(Random_array)
-          Random_sample_position = Box_size*Random_array
-          open(10000,file='./data/positions.dat')
-          do i=1,N_sample
-              write(10000,*) Random_sample_position(i,:)
-          end do
-          close(10000)
+          ! call Random_number(Random_array)
+          ! Random_sample_position = Box_size*Random_array
+          ! open(10000,file='./data/positions.dat')
+          ! do i=1,N_sample
+          !     write(10000,*) Random_sample_position(i,:)
+          ! end do
+          ! close(10000)
 
           do id=1,processors-1
             p_ids = id
@@ -93,8 +95,10 @@
       else
 !           call MPI_comm_rank(MPI_comm_World, rank, ierr)
 !           print *, 'processor', rank, 'received', p_idr
-          call Random_number(Random_array)
-          Random_sample_position = Box_size*Random_array
+          ! call Random_number(Random_array)
+          ! Random_sample_position = Box_size*Random_array
+          call read_spts(smp_pts)
+
 
 
 
@@ -110,7 +114,7 @@
 
             if (p_idr <= N_sample) then
               print *, 'Processor', rank, 'Calculating', p_idr
-              call calculate_fields(Random_sample_position(p_idr,:),snapdata,xi,rank)
+              call calculate_fields(smp_pts(p_idr,:),snapdata,xi,rank, p_idr)
             else
               print *, 'processor', rank, 'exiting in this loop'
               rank = -1
