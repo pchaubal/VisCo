@@ -56,7 +56,7 @@ plt.clf()
 
 plt.title('cv2')
 plt.plot(r,cv2,'-o',markersize=2)
-plt.savefig('./postprocess/cs2num.jpg')
+plt.savefig('./postprocess/cv2.jpg')
 plt.show()
 plt.clf()
 

@@ -622,7 +622,7 @@ CONTAINS
       ! write (x1,fmt) i1 ! converting integer to string using a 'internal file'
       ! filename = 'data/tertiary_fields'//trim(x1)//'.dat'
       ! open(unit = rank,file=filename)
-      write(rank+10,"(/ I7 F15.6, F15.6, E15.6, E15.6, E15.6, E15.6)", advance='no') pid, pf%rho, tf%delta, &
+      write(rank+10,"(/ I7, F15.6, F15.6, E15.6, E15.6, E15.6, E15.6)", advance='no') pid, pf%rho, tf%delta, &
       tf%theta, tf%As, tf%d2delta, tf%d2theta
       ! write(rank+10,*) rank, pf%rho
 
