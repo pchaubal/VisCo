@@ -21,7 +21,7 @@ for r_no in np.arange(1,max_r/stride + stride):
 	for i in range(int(2000*r_no+0),int(2000*r_no+2000),2):
 		# print i
 		# P = tf[i]*tf[i+1]
-		P_AD    += tf[i][2]*tf[i+1][2]
+		P_AD    += tf[i][4]*tf[i+1][2]
 		P_AT    += tf[i][4]*tf[i+1][1]
 		P_DD    += tf[i][2]*tf[i+1][2]
 		P_DT    += tf[i][2]*tf[i+1][3]
