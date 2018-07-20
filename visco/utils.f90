@@ -13,7 +13,7 @@ contains
   
       call downsample(snapdata%positions,downsample_size,xds)
       call downsample(snapdata%velocities,downsample_size,vds)
-      xds = xds/1000.0 ! this is only because the snapdata is in kpc and output data in Mpc
+!       xds = xds/1000.0 ! this is only because the snapdata is in kpc and output data in Mpc
       deallocate(snapdata%positions)
       deallocate(snapdata%velocities)
       allocate(snapdata%positions(downsample_size,3))

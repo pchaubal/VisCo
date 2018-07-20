@@ -9,10 +9,10 @@
       
       ! Our programming variables
       Integer :: N_sample = 560000
-      Real*4              :: smp_pts(560000,3)
-      Integer :: downsample_size = 20000
-      Real*4, allocatable :: Random_array(:,:), Random_sample_position(:,:)
-      Real*4  :: Box_size = 60 ! in Mpc/h
+      Real*4  :: smp_pts(560000,3)
+      Integer :: downsample_size = 40000
+      ! Real*4, allocatable :: Random_array(:,:), Random_sample_position(:,:)
+      Real*4  :: Box_size = 60.0 ! in Mpc/h
       Real, allocatable  :: xi(:,:)
 
       
@@ -47,7 +47,8 @@
       call MPI_comm_rank(MPI_comm_World, rank, ierr)
       
 
-      call readposvel(snapdata)
+!       call readposvel(snapdata)
+      call read_illustris(snapdata)
       call downsample_snap(snapdata,downsample_size)
 
 
