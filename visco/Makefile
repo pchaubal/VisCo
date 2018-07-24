@@ -1,7 +1,7 @@
 objects = constants.o readsnap.o readsampoint.o utils.o fields.o visco.o
 F90     = mpifort
 # FFLAGS =  -O3 -fopenmp -ffast-math -fmax-errors=4
-FFLAGS = -fast  
+FFLAGS = -O3
 execname: $(objects)
 	$(F90) $(FFLAGS) -o visco $(objects) 
 %.o: %.f90
