@@ -161,6 +161,9 @@ subroutine read_illustris(snapdata)
 
    call downsample_snap(snapdata,downsample_size)
 
+!    This prints the position of particles with indices from 10 to 15 
+   print *, 'The positions of snap from binary:', snapdata%positions(10:15,:)
+
 
 
 end subroutine read_illustris
