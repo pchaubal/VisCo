@@ -30,7 +30,7 @@ r_list = []
 r_pairs = []
 positions=[]
 for r_no in np.arange(1,max_r/stride + stride):
-	print r_no*stride
+	print 'Generating pairs at:%s'%(r_no*stride)
 	for i in range(2000):
 		r = r_no*stride
 		pairs = generate_pair(r)

@@ -67,7 +67,6 @@ CONTAINS
     ! Varibles for calculation of the xi field
     REAL*8              :: mod_rnrm,Wrnrm,xi_kernel
     Integer             :: prtcl_id, eta_m_ind,i=0,j
-    Real                :: Box_size = 60
     ! variables for parallelization
     integer             :: ierr
     integer             :: rank,processors,start_index,stop_index, size_x, ppp
@@ -116,38 +115,38 @@ CONTAINS
 
         
         !Periodic bondary conditions 
-         if (r1(1) < Lambda) then
-            if (r2(1) > Box_size - Lambda) then
+         if (r1(1) < 1.0/Lambda) then
+            if (r2(1) > Box_size - 1.0/Lambda) then
               r2(1) = r2(1) - Box_size
             end if
          end if
 
-         if (r1(1) > Box_size - Lambda) then
-            if (r2(1) < Lambda) then
+         if (r1(1) > Box_size - 1.0/Lambda) then
+            if (r2(1) < 1.0/Lambda) then
               r2(1) = r2(1) + Box_size
             end if
          end if
 
-         if (r1(2) < Lambda) then
-            if (r2(2) > Box_size - Lambda) then
+         if (r1(2) < 1.0/Lambda) then
+            if (r2(2) > Box_size - 1.0/Lambda) then
               r2(2) = r2(2) - Box_size
             end if
          end if
 
-         if (r1(2) > Box_size - Lambda) then
-            if (r2(2) < Lambda) then
+         if (r1(2) > Box_size - 1.0/Lambda) then
+            if (r2(2) < 1.0/Lambda) then
               r2(2) = r2(2) + Box_size
             end if
          end if
 
-         if (r1(3) < Lambda) then
-            if (r2(3) > Box_size - Lambda) then
+         if (r1(3) < 1.0/Lambda) then
+            if (r2(3) > Box_size - 1.0/Lambda) then
               r2(3) = r2(3) - Box_size
             end if
          end if
 
-         if (r1(3) > Box_size - Lambda) then
-            if (r2(3) < Lambda) then
+         if (r1(3) > Box_size - 1.0/Lambda) then
+            if (r2(3) < 1.0/Lambda) then
               r2(3) = r2(3) + Box_size
             end if
          end if
@@ -251,13 +250,10 @@ CONTAINS
     use readsnap
 
     IMPLICIT NONE
-    ! Integer, intent(in) :: N_sample ! The number of sampled points in the simulation cube
-    ! Real*8, intent(in)  :: a
     REAL*4, allocatable   :: x(:,:)
     REAL*4, allocatable   :: v(:,:)
     REAL*4, INTENT(in)    :: r(3),xi(:,:)
     Real*4                :: r2(3)
-    Real                  :: Box_size = 60
     
     REAL*4  :: d                    ! A parameter for euclidean dist
 
@@ -273,9 +269,6 @@ CONTAINS
     INTEGER :: i,j,k
     INTEGER :: eta_n_ind, eta_m_ind
     REAL*8  :: norm1,norm
-    ! Real*8  :: dp
-
-    ! COMMON /VARS/    m
 
     pf%rho         = 0.0
     pf%d_rho       = 0.0
@@ -306,32 +299,32 @@ CONTAINS
           end if
        end if
 
-       if (r(1) > Box_size - Lambda) then
-          if (r2(1) < Lambda) then
+       if (r(1) > Box_size - 1.0/Lambda) then
+          if (r2(1) < 1.0/Lambda) then
             r2(1) = r2(1) + Box_size
           end if
        end if
 
-       if (r(2) < Lambda) then
-          if (r2(2) > Box_size - Lambda) then
+       if (r(2) < 1.0/Lambda) then
+          if (r2(2) > Box_size - 1.0/Lambda) then
             r2(2) = r2(2) - Box_size
           end if
        end if
 
-       if (r(2) > Box_size - Lambda) then
-          if (r2(2) < Lambda) then
+       if (r(2) > Box_size - 1.0/Lambda) then
+          if (r2(2) < 1.0/Lambda) then
             r2(2) = r2(2) + Box_size
           end if
        end if
 
-       if (r(3) < Lambda) then
-          if (r2(3) > Box_size - Lambda) then
+       if (r(3) < 1.0/Lambda) then
+          if (r2(3) > Box_size - 1.0/Lambda) then
             r2(3) = r2(3) - Box_size
           end if
        end if
 
-       if (r(3) > Box_size - Lambda) then
-          if (r2(3) < Lambda) then
+       if (r(3) > Box_size - 1.0/Lambda) then
+          if (r2(3) < 1.0/Lambda) then
             r2(3) = r2(3) + Box_size
           end if
        end if

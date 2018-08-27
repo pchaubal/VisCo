@@ -3,16 +3,12 @@
       use readsnap
       use fields
       use constants
-      use utils
+!       use utils
       use readsampoint
       implicit none
       
       ! Our programming variables
-      Integer :: N_sample = 560000
-      Real*4  :: smp_pts(560000,3)
-      Integer :: downsample_size = 40000
-      ! Real*4, allocatable :: Random_array(:,:), Random_sample_position(:,:)
-      Real*4  :: Box_size = 60.0 ! in Mpc/h
+      Real*4  :: smp_pts(N_sample,3)
       Real, allocatable  :: xi(:,:)
 
       
@@ -39,9 +35,6 @@
 
       snapdata%filename = './snapshots/snapshot_041'
 
-      ! allocate(Random_array(N_sample,3))
-      ! allocate(Random_sample_position(N_sample,3))
-
       call MPI_INIT ( ierr )
       call MPI_comm_size(MPI_comm_World, processors, ierr)
       call MPI_comm_rank(MPI_comm_World, rank, ierr)
@@ -49,7 +42,7 @@
 
 !       call readposvel(snapdata)
       call read_illustris(snapdata)
-      call downsample_snap(snapdata,downsample_size)
+!       call downsample_snap(snapdata,downsample_size)
 
 
       call calculate_xi(snapdata,xi)
@@ -94,14 +87,7 @@
           end do
 
       else
-!           call MPI_comm_rank(MPI_comm_World, rank, ierr)
-!           print *, 'processor', rank, 'received', p_idr
-          ! call Random_number(Random_array)
-          ! Random_sample_position = Box_size*Random_array
           call read_spts(smp_pts)
-
-
-
 
           do 
             call MPI_RECV(p_idr,1, MPI_INT, rootprocess, MPI_ANY_TAG, MPI_comm_World, status, ierr)

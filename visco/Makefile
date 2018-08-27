@@ -1,4 +1,4 @@
-objects = constants.o readsnap.o readsampoint.o utils.o fields.o visco.o
+objects = constants.o readsnap.o readsampoint.o fields.o visco.o
 F90     = mpifort
 # FFLAGS =  -O3 -fopenmp -ffast-math -fmax-errors=4
 FFLAGS = -O3

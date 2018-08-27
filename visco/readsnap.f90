@@ -13,7 +13,53 @@ implicit none
 
 contains      
 
+subroutine downsample_snap(snapdata,downsample_size)
+   implicit none
+   Integer, intent(in) :: downsample_size
+   type(snapshotdata)  :: snapdata
+   Real*4, allocatable :: xds(:,:), vds(:,:)
+
+
+   call downsample(snapdata%positions,downsample_size,xds)
+   call downsample(snapdata%velocities,downsample_size,vds)
+!       xds = xds/1000.0 ! this is only because the snapdata is in kpc and output data in Mpc
+   deallocate(snapdata%positions)
+   deallocate(snapdata%velocities)
+   allocate(snapdata%positions(downsample_size,3))
+   allocate(snapdata%velocities(downsample_size,3))
+
+   snapdata%positions  = xds
+   snapdata%velocities = vds
+   snapdata%mass       = snapdata%mass*(snapdata%n_particles/downsample_size)
+   snapdata%n_particles = downsample_size
+end subroutine downsample_snap
+
+
+subroutine downsample(array,downsample_size,downsampled)
+   ! USE IFPORT
+   implicit none
+   real :: array(:,:)
+   real, allocatable :: downsampled(:,:)
+   integer, intent(in) :: downsample_size
+   integer :: i,random_index
+   integer :: array_size
+
+   allocate(downsampled(downsample_size,3))
+
+   array_size = size(array,1)
+   
+   do i=1,downsample_size
+     random_index =  int(rand(0)*(array_size+1-1))+1 
+     downsampled(i,:) = array(random_index,:)
+   end do
+
+end subroutine downsample
+
+
+
 subroutine readposvel(snapdata)
+   use constants
+
    integer*4          :: flag_sfr,flag_feedback
    integer*4          :: npart(0:5), nall(0:5)
    real*8             :: massarr(0:5)
@@ -61,12 +107,16 @@ subroutine readposvel(snapdata)
    print *,'Done with reading snapshot'
  
    ! At this point, the coordinates of all particles of type 1 will
-   ! be stored in the snapdata  
+   ! be stored in the snapdata
+   call downsample_snap(snapdata,downsample_size)
+
 end subroutine readposvel
 
 
 
 subroutine read_illustris(snapdata)
+   use constants
+!    use utils
    character*200        :: filepos,filevel
    real*8, allocatable  :: pos(:,:)
    real*8, allocatable  :: vel(:,:)
@@ -75,7 +125,7 @@ subroutine read_illustris(snapdata)
    filepos= '/home/prakrut/codes/Illustris-3/binarysnaps/positions.bin'
    filevel= '/home/prakrut/codes/Illustris-3/binarysnaps/velocities.bin'
 
-   snapdata%mass = 1.0
+   snapdata%mass = (455.0**3.0)/downsample_size
    snapdata%a    = 1.0
 
    open (1, file=filepos, form='unformatted', access='stream')
@@ -108,6 +158,9 @@ subroutine read_illustris(snapdata)
    deallocate(vel)
 
    close (12)
+
+   call downsample_snap(snapdata,downsample_size)
+
 
 
 end subroutine read_illustris
