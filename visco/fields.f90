@@ -120,43 +120,20 @@ CONTAINS
 
 
         !Periodic bondary conditions 
-         if (r1(1) < 1.0/Lambda) then
-            if (r2(1) > Box_size - 1.0/Lambda) then
-              r2(1) = r2(1) - Box_size
-            end if
-         end if
-
-         if (r1(1) > Box_size - 1.0/Lambda) then
-            if (r2(1) < 1.0/Lambda) then
-              r2(1) = r2(1) + Box_size
-            end if
-         end if
-
-         if (r1(2) < 1.0/Lambda) then
-            if (r2(2) > Box_size - 1.0/Lambda) then
-              r2(2) = r2(2) - Box_size
-            end if
-         end if
-
-         if (r1(2) > Box_size - 1.0/Lambda) then
-            if (r2(2) < 1.0/Lambda) then
-              r2(2) = r2(2) + Box_size
-            end if
-         end if
-
-         if (r1(3) < 1.0/Lambda) then
-            if (r2(3) > Box_size - 1.0/Lambda) then
-              r2(3) = r2(3) - Box_size
-            end if
-         end if
-
-         if (r1(3) > Box_size - 1.0/Lambda) then
-            if (r2(3) < 1.0/Lambda) then
-              r2(3) = r2(3) + Box_size
-            end if
-         end if
+         do i=1,3
+	       if (r1(i) < radius) then
+	          if (r2(i) > Box_size - radius) then
+	            r2(i) = r2(i) - Box_size
+	          end if
+	       elseif (r1(i) > Box_size - radius) then
+	          if (r2(i) < radius) then
+	            r2(i) = r2(i) + Box_size
+	          end if
+	       end if
+	     end do
         
-        ! ! print *, 'PBC have been implemented'
+        ! print *, 'PBC have been implemented'
+
 !          Call euclidean_dist(r1,r2,d)
 		 d = sqrt(r_sq)
          If(d .le. radius .and. d > 0.1) then
@@ -306,59 +283,26 @@ CONTAINS
         rnrm = r-r2
      	r_sq = dot_product( rnrm, rnrm)
 
-       !Periodic bondary conditions 
-       if (r(1) < Lambda) then
-          if (r2(1) > Box_size - 1.0/Lambda) then
-            r2(1) = r2(1) - Box_size
-          end if
-       end if
-
-       if (r(1) > Box_size - 1.0/Lambda) then
-          if (r2(1) < 1.0/Lambda) then
-            r2(1) = r2(1) + Box_size
-          end if
-       end if
-
-       if (r(2) < 1.0/Lambda) then
-          if (r2(2) > Box_size - 1.0/Lambda) then
-            r2(2) = r2(2) - Box_size
-          end if
-       end if
-
-       if (r(2) > Box_size - 1.0/Lambda) then
-          if (r2(2) < 1.0/Lambda) then
-            r2(2) = r2(2) + Box_size
-          end if
-       end if
-
-       if (r(3) < 1.0/Lambda) then
-          if (r2(3) > Box_size - 1.0/Lambda) then
-            r2(3) = r2(3) - Box_size
-          end if
-       end if
-
-       if (r(3) > Box_size - 1.0/Lambda) then
-          if (r2(3) < 1.0/Lambda) then
-            r2(3) = r2(3) + Box_size
-          end if
-       end if
-
-
+       !Periodic bondary conditions
+       do i=1,3
+	       if (r(i) < radius) then
+	          if (r2(i) > Box_size - radius) then
+	            r2(i) = r2(i) - Box_size
+	          end if
+	       elseif (r(i) > Box_size - radius) then
+	          if (r2(i) < radius) then
+	            r2(i) = r2(i) + Box_size
+	          end if
+	       end if
+       end do
 
 
 !        CALL euclidean_dist(r,r2,d)
 	   d = sqrt(r_sq)
-
-             ! print *,'d=', d
-       IF (d<radius) THEN
-
+       if (d<radius) then
           !Sum the W first
           Wkernel = EXP( -0.5*Lambda**2*dot_product(r-r2,r-r2) )
           pf%rho = pf%rho + Wkernel
-          ! dp = dot_product(r-x(eta_n_ind,:),r-x(eta_n_ind,:))
-          ! PRINT *, "d,radius", d,radius
-
-          ! print *, 'pf%rho', pf%rho
 
           !Now sum the d_W
           DO i=1,3
