@@ -58,8 +58,8 @@ CONTAINS
     use constants
     implicit none 
     Type(snapshotdata)  :: snapdata
-    REAL*4              :: d                    ! A parameter for euclidean dist
-    Real*4              :: r1(3), r2(3), rnrm
+    REAL*4              :: d                  ! A parameter for euclidean dist
+    Real*4              :: r1(3), r2(3), rnrm(3)
     Real*4, allocatable :: xi(:,:), xi_sub(:,:)
     Integer             :: xi_ind
     REAL*4              :: x(snapdata%n_particles,3)
@@ -157,7 +157,8 @@ CONTAINS
          end if
         
         ! ! print *, 'PBC have been implemented'
-         Call euclidean_dist(r1,r2,d)
+!          Call euclidean_dist(r1,r2,d)
+		 d = sqrt(r_sq)
          If(d .le. radius .and. d > 0.1) then
             
             mod_rnrm = sqrt(r_sq)
@@ -258,8 +259,12 @@ CONTAINS
     REAL*4, allocatable   :: v(:,:)
     REAL*4, INTENT(in)    :: r(3),xi(:,:)
     Real*4                :: r2(3)
+    Real*4                :: rnrm(3)
+
     
     REAL*4  :: d                    ! A parameter for euclidean dist
+    REAL*8                :: r_sq
+
 
     TYPE(primaryfields) :: pf
     Type(snapshotdata)  :: snapdata
@@ -296,9 +301,14 @@ CONTAINS
     DO eta_n_ind=1,snapdata%n_particles
        r2 = snapdata%positions(eta_n_ind,:)
        ! print *, 'r and x', r,x(eta_n_ind,:)
+
+       !Calculating distance before PBC implementation so that distances dont change
+        rnrm = r-r2
+     	r_sq = dot_product( rnrm, rnrm)
+
        !Periodic bondary conditions 
        if (r(1) < Lambda) then
-          if (r2(1) > Box_size - Lambda) then
+          if (r2(1) > Box_size - 1.0/Lambda) then
             r2(1) = r2(1) - Box_size
           end if
        end if
@@ -336,7 +346,9 @@ CONTAINS
 
 
 
-       CALL euclidean_dist(r,r2,d)
+!        CALL euclidean_dist(r,r2,d)
+	   d = sqrt(r_sq)
+
              ! print *,'d=', d
        IF (d<radius) THEN
 
