@@ -59,12 +59,13 @@ CONTAINS
     implicit none 
     Type(snapshotdata)  :: snapdata
     REAL*4              :: d                    ! A parameter for euclidean dist
-    Real*4              :: r1(3), r2(3)
+    Real*4              :: r1(3), r2(3), rnrm
     Real*4, allocatable :: xi(:,:), xi_sub(:,:)
     Integer             :: xi_ind
     REAL*4              :: x(snapdata%n_particles,3)
 
     ! Varibles for calculation of the xi field
+    REAL*8              :: r_sq
     REAL*8              :: mod_rnrm,Wrnrm,xi_kernel
     Integer             :: prtcl_id, eta_m_ind,i=0,j
     ! variables for parallelization
@@ -113,7 +114,11 @@ CONTAINS
 
         r2 = x(eta_m_ind,:)
 
-        
+        !Calculating distance before PBC implementation so that distances dont change
+        rnrm = r1-r2
+     	r_sq = dot_product( rnrm, rnrm)
+
+
         !Periodic bondary conditions 
          if (r1(1) < 1.0/Lambda) then
             if (r2(1) > Box_size - 1.0/Lambda) then
@@ -155,17 +160,16 @@ CONTAINS
          Call euclidean_dist(r1,r2,d)
          If(d .le. radius .and. d > 0.1) then
             
-            mod_rnrm = sqrt(dot_product( r1-r2 , r1-r2 ))
+            mod_rnrm = sqrt(r_sq)
             
-            Wrnrm = EXP( -0.5*Lambda**2*dot_product( r1-r2 , r1-r2 ) )
+            Wrnrm = EXP( -0.5*Lambda**2*r_sq )
             
             xi_kernel = (  (1.0/mod_rnrm)*ERFC(Lambda*mod_rnrm/sqrt(2.0)) & 
-              + sqrt(2.0/pi)*Lambda*Wrnrm )*((1/mod_rnrm**2)*exp(-6*(mod_rnrm/radius)**6)  )!*GAMMA(mod_rnrm*Lambda)
+              + sqrt(2.0/pi)*Lambda*Wrnrm )*((1/mod_rnrm**2)*exp(-6*(mod_rnrm/radius)**6)  )
             
             do i=1,3
 
-              xi_sub(xi_ind,i) = xi_sub(xi_ind,i) + (r1(i)-r2(i))*xi_kernel
-              ! xis(i) = 1.0 
+              xi_sub(xi_ind,i) = xi_sub(xi_ind,i) + (rnrm(i))*xi_kernel
             end do
 
 
