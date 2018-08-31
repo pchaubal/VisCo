@@ -85,9 +85,6 @@ CONTAINS
 
 
     ! Each processor at this point has received the positions data.
-    ! Reshape the data to its original form
-    ! allocate(x(size_x,3))
-    ! x = 0.0  
     x = snapdata%positions
 
     ! print *, 'x=',x(1,:)
@@ -111,47 +108,38 @@ CONTAINS
 
       ! print *,'xisub1=',xi_sub(:,:)
       do eta_m_ind=1, size(snapdata%positions,1)
-
         r2 = x(eta_m_ind,:)
 
-        !Calculating distance before PBC implementation so that distances dont change
-        rnrm = r1-r2
-     	r_sq = dot_product( rnrm, rnrm)
-
-
         !Periodic bondary conditions 
-         do i=1,3
-	       if (r1(i) < radius) then
-	          if (r2(i) > Box_size - radius) then
-	            r2(i) = r2(i) - Box_size
-	          end if
-	       elseif (r1(i) > Box_size - radius) then
-	          if (r2(i) < radius) then
-	            r2(i) = r2(i) + Box_size
-	          end if
-	       end if
-	     end do
-        
+        do i=1,3
+          if (r1(i) < radius) then
+            if (r2(i) > Box_size - radius) then
+              r2(i) = r2(i) - Box_size
+            end if
+          elseif (r1(i) > Box_size - radius) then
+            if (r2(i) < radius) then
+              r2(i) = r2(i) + Box_size
+            end if
+          end if
+        end do
         ! print *, 'PBC have been implemented'
 
-!          Call euclidean_dist(r1,r2,d)
-		 d = sqrt(r_sq)
-         If(d .le. radius .and. d > 0.1) then
-            
-            mod_rnrm = sqrt(r_sq)
-            
-            Wrnrm = EXP( -0.5*Lambda**2*r_sq )
-            
-            xi_kernel = (  (1.0/mod_rnrm)*ERFC(Lambda*mod_rnrm/sqrt(2.0)) & 
-              + sqrt(2.0/pi)*Lambda*Wrnrm )*((1/mod_rnrm**2)*exp(-6*(mod_rnrm/radius)**6)  )
-            
-            do i=1,3
+        rnrm = r1-r2
+       	r_sq = dot_product( rnrm, rnrm)
+		    d = sqrt(r_sq)
+!         Call euclidean_dist(r1,r2,d)
+        If(d .le. radius .and. d > 0.1) then
+          mod_rnrm = sqrt(r_sq)
+          Wrnrm = EXP( -0.5*Lambda**2*r_sq )
+           
+          xi_kernel = (  (1.0/mod_rnrm)*ERFC(Lambda*mod_rnrm/sqrt(2.0)) & 
+            + sqrt(2.0/pi)*Lambda*Wrnrm )*((1/mod_rnrm**2)*exp(-6*(mod_rnrm/radius)**6)  )
+           
+          do i=1,3
+            xi_sub(xi_ind,i) = xi_sub(xi_ind,i) + (rnrm(i))*xi_kernel
+          end do
+        end if
 
-              xi_sub(xi_ind,i) = xi_sub(xi_ind,i) + (rnrm(i))*xi_kernel
-            end do
-
-
-         end if
 
       end do
       ! print *, 'done',prtcl_id
@@ -239,7 +227,7 @@ CONTAINS
     Real*4                :: rnrm(3)
 
     
-    REAL*4  :: d                    ! A parameter for euclidean dist
+    REAL*4                :: d     ! A parameter for euclidean dist
     REAL*8                :: r_sq
 
 
@@ -276,115 +264,109 @@ CONTAINS
 
     ! print *, "calculating xi field"
     DO eta_n_ind=1,snapdata%n_particles
-       r2 = snapdata%positions(eta_n_ind,:)
+      r2 = snapdata%positions(eta_n_ind,:)
        ! print *, 'r and x', r,x(eta_n_ind,:)
 
-       !Calculating distance before PBC implementation so that distances dont change
-        rnrm = r-r2
-     	r_sq = dot_product( rnrm, rnrm)
 
        !Periodic bondary conditions
-       do i=1,3
-	       if (r(i) < radius) then
-	          if (r2(i) > Box_size - radius) then
-	            r2(i) = r2(i) - Box_size
-	          end if
-	       elseif (r(i) > Box_size - radius) then
-	          if (r2(i) < radius) then
-	            r2(i) = r2(i) + Box_size
-	          end if
-	       end if
-       end do
+      do i=1,3
+        if (r(i) < radius) then
+            if (r2(i) > Box_size - radius) then
+              r2(i) = r2(i) - Box_size
+           end if
+        elseif (r(i) > Box_size - radius) then
+            if (r2(i) < radius) then
+              r2(i) = r2(i) + Box_size
+            end if
+        end if
+      end do
 
 
 !        CALL euclidean_dist(r,r2,d)
-	   d = sqrt(r_sq)
-       if (d<radius) then
-          !Sum the W first
-          Wkernel = EXP( -0.5*Lambda**2*dot_product(r-r2,r-r2) )
-          pf%rho = pf%rho + Wkernel
-
-          !Now sum the d_W
-          DO i=1,3
-             d_Wkernel(i) = -Lambda**2*r(i)*Wkernel
-             pf%d_rho(i) = pf%d_rho(i) + d_Wkernel(i)
-          END DO
-
-          !Now sum the second derivative of W
-          DO i=1,3
-             DO j=1,3
-                IF (i==j) THEN
-                   dd_Wkernel(i,i) = Lambda**2*Wkernel*(Lambda**2*(r(i)-r2(i))**2 - 1)
-                ELSE
-                   dd_Wkernel(i,j) = Lambda**2*Wkernel*(Lambda**2*(r(i)-r2(i))*(r(j)-r2(j)))
-                END IF
-                pf%dd_rho(i,j) = pf%dd_rho(i,j) + dd_Wkernel(i,j)
-             END DO
-          END DO
-
-          !Now sum the third derivatives
-          DO i=1,3
-             DO j=1,3
-                IF (i==j) THEN
-                   d2d_Wkernel(i,i) = Lambda**2*( d_Wkernel(i)*(Lambda**2*(r(i)-r2(i))**2 - 1) &
-                        + Wkernel*Lambda**2*2*(r(i)-r2(i)) )
-                ELSE
-                   d2d_Wkernel(i,j) = Lambda**2*( d_Wkernel(i)*(Lambda**2*(r(i)-r2(i))*(r(j)-r2(j))) &
-                        + Wkernel*Lambda**2*(r(j)-r2(j)) )
-                END IF
-                pf%d2d_rho(i,j) = pf%d2d_rho(i,j) + d2d_Wkernel(i,j)
-             END DO
-          END DO
-
-          ! Calculate the pi fields now
-          DO i = 1,3
-             pf%p(i) = pf%p(i) + pf%p(i)*pf%rho
-          END DO
-          ! The first derivative of pi field
-          DO i = 1,3
-             DO j = 1,3
-                pf%d_pi(i,j) = pf%d_pi(i,j) +  d_Wkernel(i)*v(eta_n_ind,j)
-             END DO
-          END DO
-          ! The second derivative of the pi field
-          DO i=1,3
-             DO j=1,3
-                DO k=1,3
-                   pf%dd_pi(i,j,k) = pf%dd_pi(i,j,k) + dd_Wkernel(i,j)*v(eta_n_ind,k)
-                END DO
-             END DO
-          END DO
-          ! The third derivative
-          DO i=1,3
-             DO j=1,3
-                DO k=1,3
-                   pf%d2d_pi(i,j,k) = pf%d2d_pi(i,j,k) + d2d_Wkernel(i,j)*v(eta_n_ind,k)
-                END DO
-             END DO
-          END DO
-          ! The sigma terms
-          DO i=1,3
-             DO j=1,3
-                pf%dd_sigma(i,j) = pf%dd_sigma(i,j) + dd_Wkernel(i,j)*v(eta_n_ind,i)*v(eta_n_ind,j)
-             END DO
-          END DO
-
-          ! print *, "here1"
-          DO i=1,3
-             DO j=1,3
-                pf%d_rho_d_phi(i,j) = pf%d_rho_d_phi(i,j) + d_Wkernel(i)*xi(eta_n_ind,j)
-               ! print *,  d_Wkernel(i), pf%xi(j)
-             END DO
-             ! print *, 'pf%d_rho_d_phi', pf%d_rho_d_phi
-          END DO
-          ! print *, eta_n_ind
-       ! ELSE
-       ! print *, "pf%rho =", pf%rho
-       END IF
+      rnrm = r-r2
+     	r_sq = dot_product(rnrm, rnrm)
+	    d = sqrt(r_sq)
+      if (d<radius) then
+        !Sum the W first
+        Wkernel = EXP( -0.5*Lambda**2.0*dot_product(r-r2,r-r2) )
+        pf%rho = pf%rho + Wkernel
+        !Now sum the d_W
+        DO i=1,3
+           d_Wkernel(i) = -Lambda**2.0*r(i)*Wkernel
+           pf%d_rho(i) = pf%d_rho(i) + d_Wkernel(i)
+        END DO
+        !Now sum the second derivative of W
+        DO i=1,3
+           DO j=1,3
+              IF (i==j) THEN
+                 dd_Wkernel(i,i) = Lambda**2.0*Wkernel*(Lambda**2.0*(r(i)-r2(i))**2.0 - 1.0)
+              ELSE
+                 dd_Wkernel(i,j) = Lambda**2.0*Wkernel*(Lambda**2.0*(r(i)-r2(i))*(r(j)-r2(j)))
+              END IF
+              pf%dd_rho(i,j) = pf%dd_rho(i,j) + dd_Wkernel(i,j)
+           END DO
+        END DO
+         !Now sum the third derivatives
+        DO i=1,3
+           DO j=1,3
+              IF (i==j) THEN
+                 d2d_Wkernel(i,i) = Lambda**2.0*( d_Wkernel(i)*(Lambda**2.0*(r(i)-r2(i))**2.0 - 1.0) &
+                      + Wkernel*Lambda**2.0*2.0*(r(i)-r2(i)) )
+              ELSE
+                 d2d_Wkernel(i,j) = Lambda**2.0*( d_Wkernel(i)*(Lambda**2.0*(r(i)-r2(i))*(r(j)-r2(j))) &
+                      + Wkernel*Lambda**2.0*(r(j)-r2(j)) )
+              END IF
+              pf%d2d_rho(i,j) = pf%d2d_rho(i,j) + d2d_Wkernel(i,j)
+           END DO
+        END DO
+        ! Calculate the pi fields now
+        DO i = 1,3
+           pf%p(i) = pf%p(i) + pf%p(i)*pf%rho
+        END DO
+        ! The first derivative of pi field
+        DO i = 1,3
+           DO j = 1,3
+              pf%d_pi(i,j) = pf%d_pi(i,j) +  d_Wkernel(i)*v(eta_n_ind,j)
+           END DO
+        END DO
+        ! The second derivative of the pi field
+        DO i=1,3
+           DO j=1,3
+              DO k=1,3
+                 pf%dd_pi(i,j,k) = pf%dd_pi(i,j,k) + dd_Wkernel(i,j)*v(eta_n_ind,k)
+              END DO
+           END DO
+        END DO
+        ! The third derivative
+        DO i=1,3
+           DO j=1,3
+              DO k=1,3
+                 pf%d2d_pi(i,j,k) = pf%d2d_pi(i,j,k) + d2d_Wkernel(i,j)*v(eta_n_ind,k)
+              END DO
+           END DO
+        END DO
+        ! The sigma terms
+        DO i=1,3
+           DO j=1,3
+              pf%dd_sigma(i,j) = pf%dd_sigma(i,j) + dd_Wkernel(i,j)*v(eta_n_ind,i)*v(eta_n_ind,j)
+           END DO
+        END DO
+        ! print *, "here1"
+        DO i=1,3
+           DO j=1,3
+              pf%d_rho_d_phi(i,j) = pf%d_rho_d_phi(i,j) + d_Wkernel(i)*xi(eta_n_ind,j)
+             ! print *,  d_Wkernel(i), pf%xi(j)
+           END DO
+           ! print *, 'pf%d_rho_d_phi', pf%d_rho_d_phi
+        END DO
+        ! print *, eta_n_ind
+      ! ELSE
+      ! print *, "pf%rho =", pf%rho
+      END IF
     END DO
 
     ! Normalize the fields now
-    norm  = (snapdata%mass*Lambda**3)/(snapdata%a**3*(2*pi)**(3/2))
+    norm  = (snapdata%mass*Lambda**3.0)/(snapdata%a**3.0*(2.0*pi)**(3.0/2.0))
     ! print *,"Sum W", pf%rho, norm
     pf%rho     = norm*pf%rho
     ! print *
@@ -392,7 +374,7 @@ CONTAINS
     pf%dd_rho  = norm*pf%dd_rho
     pf%d2d_rho = norm*pf%d2d_rho
 
-    norm1 = (snapdata%mass**2*G)/(snapdata%a**4*c**2) *(Lambda/(sqrt(2*pi)))**3
+    norm1 = (snapdata%mass**2.0*G)/(snapdata%a**4.0*c**2.0) *(Lambda/(sqrt(2.0*pi)))**3.0
     ! norm1 = (m**2*G)/(a**4) *(Lambda/(sqrt(2*pi)))**5
 
     pf%d_rho_d_phi = norm1*pf%d_rho_d_phi
@@ -448,8 +430,8 @@ CONTAINS
     DO i=1,3
        DO j=1,3
           DO k=1,3
-             sf%dd_v(i,j,k) = pf%dd_pi(i,j,k)/pf%rho - pf%d_pi(i,k)*pf%d_rho(j)/pf%rho**2 - pf%d_pi(j,k)*pf%d_rho(i)/pf%rho**2 &
-                  - pf%p(k)*pf%dd_rho(i,j)/pf%rho**2 + 2*pf%p(k)*pf%d_rho(i)*pf%d_rho(j)/pf%rho**3
+             sf%dd_v(i,j,k) = pf%dd_pi(i,j,k)/pf%rho - pf%d_pi(i,k)*pf%d_rho(j)/pf%rho**2.0 - pf%d_pi(j,k)*pf%d_rho(i)/pf%rho**2 &
+                  - pf%p(k)*pf%dd_rho(i,j)/pf%rho**2.0 + 2.0*pf%p(k)*pf%d_rho(i)*pf%d_rho(j)/pf%rho**3.0
           END DO
        END DO
     END DO
@@ -494,7 +476,7 @@ CONTAINS
 
     omega_m0 = 2.67d-1
     Hubble0  = 100*h !(3.24*h*1.0d-18)
-    Hubble = Hubble0*sqrt(omega_m0/(a**3) + 1.0-omega_m0)
+    Hubble = Hubble0*sqrt(omega_m0/(a**3.0) + 1.0-omega_m0)
     ! rho_bg = (omega_m0/a**3)*((3.d0*Hubble0**2)/(8.d0*pi*G))
     rho_bg = 5.82/a**3
     print *, "rho_bg  =", rho_bg
@@ -506,7 +488,7 @@ CONTAINS
        sum = sum + sf%d_v(i,i)
        ! print *, sum
     END DO
-    tf%theta   = (-1/(Hubble*a))*sum
+    tf%theta   = (-1.0/(Hubble*a))*sum
     print *, "theta   =", tf%theta
 
     sum=0
@@ -532,7 +514,7 @@ CONTAINS
           sum = sum + sf%d2d_v(i,j)
        END DO
     END DO
-    tf%d2theta = (-1/(Hubble*a)) * sum
+    tf%d2theta = (-1.0/(Hubble*a)) * sum
     print *, "d2theta =", tf%d2theta
     print *, " "
 
