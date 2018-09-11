@@ -478,7 +478,7 @@ CONTAINS
     Hubble0  = 100*h !(3.24*h*1.0d-18)
     Hubble = Hubble0*sqrt(omega_m0/(a**3.0) + 1.0-omega_m0)
     ! rho_bg = (omega_m0/a**3)*((3.d0*Hubble0**2)/(8.d0*pi*G))
-    rho_bg = 5.82/a**3
+    rho_bg = 5.82/a**3.0
     print *, "rho_bg  =", rho_bg
     tf%delta   = pf%rho/rho_bg - 1
     print *, "delta   =", tf%delta
@@ -557,7 +557,7 @@ CONTAINS
       ! write (x1,fmt) i1 ! converting integer to string using a 'internal file'
       ! filename = 'data/tertiary_fields'//trim(x1)//'.dat'
       ! open(unit = rank,file=filename)
-      write(rank+10,"(/ I7, F15.6, F15.6, E15.6, E15.6, E15.6, E15.6)", advance='no') pid, pf%rho, tf%delta, &
+      write(rank+10,"(/ I9, F17.6, F17.6, E17.6, E17.6, E17.6, E17.6)", advance='no') pid, pf%rho, tf%delta, &
       tf%theta, tf%As, tf%d2delta, tf%d2theta
       ! write(rank+10,*) rank, pf%rho
 
