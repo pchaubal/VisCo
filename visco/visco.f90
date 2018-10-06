@@ -41,7 +41,8 @@
       
 
 !       call readposvel(snapdata)
-      call read_illustris(snapdata)
+!       call read_illustris(snapdata)
+      call read_snap_multiple(snapdata)
 !       call downsample_snap(snapdata,downsample_size)
 
 
