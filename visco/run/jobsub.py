@@ -2,6 +2,7 @@
 # create a method to postproces the jobs
 # 
 import os
+import time
 
 snapshot_dir = '../snapshots'
 
@@ -66,6 +67,7 @@ for file in os.listdir(snapshot_dir):
 	edit_readnap(file)
 	edit_runvisco(file)
 	submitjob(file)
+	time.sleep(600) # time between submission of two jobs in seconds
 
 # clean up the run folder after submitting all the jobs
 os.system('rm runvisco_snap*')
