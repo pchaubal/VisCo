@@ -33,7 +33,8 @@
 
 
 
-      snapdata%filename = './snapshots/snapshot_041'
+!       snapdata%filename = './snapshots/snapshot_041'
+      call getarg(1,snapdata%filename)
 
       call MPI_INIT ( ierr )
       call MPI_comm_size(MPI_comm_World, processors, ierr)

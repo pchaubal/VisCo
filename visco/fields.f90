@@ -374,7 +374,7 @@ CONTAINS
     pf%dd_rho  = norm*pf%dd_rho
     pf%d2d_rho = norm*pf%d2d_rho
 
-    norm1 = (snapdata%mass**2.0*G)/(snapdata%a**4.0*c**2.0) *(Lambda/(sqrt(2.0*pi)))**3.0
+    norm1 = (snapdata%mass**2.0*G)/(snapdata%a**4.0) *(Lambda/(sqrt(2.0*pi)))**3.0
     ! norm1 = (m**2*G)/(a**4) *(Lambda/(sqrt(2*pi)))**5
 
     pf%d_rho_d_phi = norm1*pf%d_rho_d_phi
@@ -404,14 +404,14 @@ CONTAINS
     real*8  :: norm2
     ! COMMON /VARS/    m
 
-    norm2 = (4.0*pi*G*a**2)/(2*Lambda**2*c**2)
+    norm2 = (4.0*pi*G*a**2.0)/(2.0*Lambda**2.0)
     ! norm2 = (4.0*pi*G*a**2)/(2*Lambda**2)
 
     !    print *, a, Lambda,norm2
     ! print *, "calculating secondary field"
     DO i =1,3
        DO j=1,3
-          sf%dd_phi(i,j) = pf%d_rho_d_phi(i,j) + norm2*pf%d_rho(i)*pf%d_rho(j) + pf%rho*pf%dd_rho(i,j)
+          sf%dd_phi(i,j) = pf%d_rho_d_phi(i,j) + norm2*(pf%d_rho(i)*pf%d_rho(j) + pf%rho*pf%dd_rho(i,j))
           !          print *, pf%d_rho_d_phi(i,j), sf%dd_phi(i,j)
        END DO
     END DO

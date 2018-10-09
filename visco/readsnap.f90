@@ -177,7 +177,9 @@ subroutine read_snap_multiple(snapdata)
    integer, parameter :: SNAPSHOT = 041      ! number of dump
    integer, parameter :: FILES = 3          ! number of files per snapshot
 
-   character*200, parameter :: path='/home/prakrut/codes/gadget/lcdm'
+   character*200, parameter :: path
+
+   path = snapdata%filename
 
 
 

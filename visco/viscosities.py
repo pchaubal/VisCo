@@ -43,42 +43,43 @@ cv2_v = cv2_v_num/cv2_v_den
 
 
 # Same but looping
-cs2,cv2=[],[]
-for j in range(len(r)):
-	P_AD, P_AT, P_DD, P_DT, P_TT, d2_P_DD, d2_P_DT, d2_P_TT = 0,0,0,0,0,0,0,0	
-	for pt_ind in range(0,4000,2):
-		# print i
-# 		# P = tf[i]*tf[i+1]
-		P_AD    += tf[j*4000+ pt_ind][4] * tf[j*4000+ (pt_ind+1)][2]
-		P_AT    += tf[j*4000+ pt_ind][4] * tf[j*4000+ (pt_ind+1)][3]
-		P_DD    += tf[j*4000+ pt_ind][2] * tf[j*4000+ (pt_ind+1)][2]
-		P_DT    += tf[j*4000+ pt_ind][2] * tf[j*4000+ (pt_ind+1)][3]
-		P_TT    += tf[j*4000+ pt_ind][3] * tf[j*4000+ (pt_ind+1)][3]
-		d2_P_DD += tf[j*4000+ pt_ind][2] * tf[j*4000+ (pt_ind+1)][5]
-		d2_P_DT += tf[j*4000+ pt_ind][5] * tf[j*4000+ (pt_ind+1)][3]
-		d2_P_TT += tf[j*4000+ pt_ind][3] * tf[j*4000+ (pt_ind+1)][6]
+# cs2,cv2=[],[]
+# for j in range(len(r)):
+# 	P_AD, P_AT, P_DD, P_DT, P_TT, d2_P_DD, d2_P_DT, d2_P_TT = 0,0,0,0,0,0,0,0	
+# 	for pt_ind in range(0,4000,2):
+# 		# print i
+# # 		# P = tf[i]*tf[i+1]
+# 		P_AD    += tf[j*4000+ pt_ind][4] * tf[j*4000+ (pt_ind+1)][2]
+# 		P_AT    += tf[j*4000+ pt_ind][4] * tf[j*4000+ (pt_ind+1)][3]
+# 		P_DD    += tf[j*4000+ pt_ind][2] * tf[j*4000+ (pt_ind+1)][2]
+# 		P_DT    += tf[j*4000+ pt_ind][2] * tf[j*4000+ (pt_ind+1)][3]
+# 		P_TT    += tf[j*4000+ pt_ind][3] * tf[j*4000+ (pt_ind+1)][3]
+# 		d2_P_DD += tf[j*4000+ pt_ind][2] * tf[j*4000+ (pt_ind+1)][5]
+# 		d2_P_DT += tf[j*4000+ pt_ind][5] * tf[j*4000+ (pt_ind+1)][3]
+# 		d2_P_TT += tf[j*4000+ pt_ind][3] * tf[j*4000+ (pt_ind+1)][6]
 
-# 	# Normalize the tertiary fields now
-	P_AD    = P_AD/2000.0    
-	P_AT    = P_AT/2000.0    
-	P_DD    = P_DD/2000.0    
-	P_DT    = P_DT/2000.0    
-	P_TT    = P_TT/2000.0    
-	d2_P_DD = d2_P_DD/2000.0 
-	d2_P_DT = d2_P_DT/2000.0 
-	d2_P_TT = d2_P_TT/2000.0 
+# # 	# Normalize the tertiary fields now
+# 	P_AD    = P_AD/2000.0    
+# 	P_AT    = P_AT/2000.0    
+# 	P_DD    = P_DD/2000.0    
+# 	P_DT    = P_DT/2000.0    
+# 	P_TT    = P_TT/2000.0    
+# 	d2_P_DD = d2_P_DD/2000.0 
+# 	d2_P_DT = d2_P_DT/2000.0 
+# 	d2_P_TT = d2_P_TT/2000.0 
 
 
-	try:
-		cs_sq = (P_AT*d2_P_DT - P_AD*d2_P_TT)/(d2_P_DT**2 - d2_P_DD*d2_P_TT)
-		cv_sq = (P_AD*d2_P_DT - P_AT*d2_P_DD)/(d2_P_DT**2 - d2_P_DD*d2_P_TT)
-	except ZeroDivisionError:
-		cs_sq = 0
-		cv_sq = 0
+# 	try:
+# 		cs_sq = (P_AT*d2_P_DT - P_AD*d2_P_TT)/(d2_P_DT**2 - d2_P_DD*d2_P_TT)
+# 		cv_sq = (P_AD*d2_P_DT - P_AT*d2_P_DD)/(d2_P_DT**2 - d2_P_DD*d2_P_TT)
+# 	except ZeroDivisionError:
+# 		cs_sq = 0
+# 		cv_sq = 0
 
-	cs2.append(cs_sq)
-	cv2.append(cv_sq)
+# 	cs2.append(cs_sq)
+# 	cv2.append(cv_sq)
 
+###############################################################################
 # Plots
 # Use the first two to compare the looped and vectorized versions
 # Ad
