@@ -177,14 +177,10 @@ subroutine read_snap_multiple(snapdata)
    integer, parameter :: SNAPSHOT = 041      ! number of dump
    integer, parameter :: FILES = 3          ! number of files per snapshot
 
-   character*200, parameter :: path
-
-   path = snapdata%filename
-
-
-
    type(snapshotdata)   :: snapdata
-   character*200 filename, snumber, fnumber
+   character*200        :: path
+
+   character*200  :: filename, snumber, fnumber
 
    integer*4 npart(0:5), nall(0:5)
    real*8    massarr(0:5)
@@ -201,6 +197,7 @@ subroutine read_snap_multiple(snapdata)
    real*4,allocatable    :: PartPos(:,:), PartVel(:,:)
 
 
+   path = snapdata%filename
 
    
    ! first we just see how many particles there are 

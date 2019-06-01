@@ -134,6 +134,9 @@ CONTAINS
            
           xi_kernel = (  (1.0/mod_rnrm)*ERFC(Lambda*mod_rnrm/sqrt(2.0)) & 
             + sqrt(2.0/pi)*Lambda*Wrnrm )*((1/mod_rnrm**2)*exp(-6*(mod_rnrm/radius)**6)  )
+!          xi_kernel = 0.0! (  (1.0/mod_rnrm)*ERFC(Lambda*mod_rnrm/sqrt(2.0)) & 
+            !+ ((4.0*pi)/Lambda**2.0)*Wrnrm )*((1/mod_rnrm**2)*Wrnrm  )
+
            
           do i=1,3
             xi_sub(xi_ind,i) = xi_sub(xi_ind,i) + (rnrm(i))*xi_kernel
@@ -191,7 +194,7 @@ CONTAINS
 
     call MPI_BCAST(xi, Size(xi), Mpi_Real, 0, MPI_comm_World, IERR)
 
-    ! print *, 'xi=',xi
+!     print *, 'xi=',xi
 
     print *, 'xi field calculation done...'
 
@@ -215,7 +218,7 @@ CONTAINS
   ! W fields at the given position r
   !==========================================================================================
 
-  SUBROUTINE primary_fields(r,snapdata,xi,pf)
+  SUBROUTINE primary_fields(r,snapdata,xi,pf,particle_count)
     use constants
     use readsnap
 
@@ -243,6 +246,7 @@ CONTAINS
     INTEGER :: i,j,k
     INTEGER :: eta_n_ind, eta_m_ind
     REAL*8  :: norm1,norm
+    Integer :: particle_count
 
     pf%rho         = 0.0
     pf%d_rho       = 0.0
@@ -258,10 +262,10 @@ CONTAINS
 
       ! print *, 'size = ' , size(x,1)
     ! allocate(x(snapdata%n_particles,3))
-    ! x = snapdata%positions
+    ! x = snapdata%positionsparticle_count
     allocate(v(snapdata%n_particles,3))
     v = snapdata%velocities
-
+    particle_count = 0
     ! print *, "calculating xi field"
     DO eta_n_ind=1,snapdata%n_particles
       r2 = snapdata%positions(eta_n_ind,:)
@@ -287,6 +291,7 @@ CONTAINS
      	r_sq = dot_product(rnrm, rnrm)
 	    d = sqrt(r_sq)
       if (d<radius) then
+        particle_count = particle_count+ 1
         !Sum the W first
         Wkernel = EXP( -0.5*Lambda**2.0*dot_product(r-r2,r-r2) )
         pf%rho = pf%rho + Wkernel
@@ -355,7 +360,7 @@ CONTAINS
         DO i=1,3
            DO j=1,3
               pf%d_rho_d_phi(i,j) = pf%d_rho_d_phi(i,j) + d_Wkernel(i)*xi(eta_n_ind,j)
-             ! print *,  d_Wkernel(i), pf%xi(j)
+             ! print *,  d_Wkernel(i), xi(eta_n_ind,j)
            END DO
            ! print *, 'pf%d_rho_d_phi', pf%d_rho_d_phi
         END DO
@@ -374,8 +379,8 @@ CONTAINS
     pf%dd_rho  = norm*pf%dd_rho
     pf%d2d_rho = norm*pf%d2d_rho
 
+    !norm1 = (snapdata%mass**2.0*G)/(snapdata%a**4.0*c**2.0) *(Lambda/(sqrt(2.0*pi)))**3.0
     norm1 = (snapdata%mass**2.0*G)/(snapdata%a**4.0) *(Lambda/(sqrt(2.0*pi)))**3.0
-    ! norm1 = (m**2*G)/(a**4) *(Lambda/(sqrt(2*pi)))**5
 
     pf%d_rho_d_phi = norm1*pf%d_rho_d_phi
 
@@ -404,15 +409,15 @@ CONTAINS
     real*8  :: norm2
     ! COMMON /VARS/    m
 
-    norm2 = (4.0*pi*G*a**2.0)/(2.0*Lambda**2.0)
-    ! norm2 = (4.0*pi*G*a**2)/(2*Lambda**2)
+    !norm2 = (4.0*pi*G*a**2)/(2*Lambda**2*c**2)
+    norm2 = (4.0*pi*G*a**2)/(2*Lambda**2)
 
-    !    print *, a, Lambda,norm2
+!        print *, a, Lambda,norm2
     ! print *, "calculating secondary field"
     DO i =1,3
        DO j=1,3
           sf%dd_phi(i,j) = pf%d_rho_d_phi(i,j) + norm2*(pf%d_rho(i)*pf%d_rho(j) + pf%rho*pf%dd_rho(i,j))
-          !          print *, pf%d_rho_d_phi(i,j), sf%dd_phi(i,j)
+!                    print *, pf%d_rho_d_phi(i,j), sf%dd_phi(i,j),  norm2*(pf%d_rho(i)*pf%d_rho(j) + pf%rho*pf%dd_rho(i,j))
        END DO
     END DO
 
@@ -478,10 +483,10 @@ CONTAINS
     Hubble0  = 100*h !(3.24*h*1.0d-18)
     Hubble = Hubble0*sqrt(omega_m0/(a**3.0) + 1.0-omega_m0)
     ! rho_bg = (omega_m0/a**3)*((3.d0*Hubble0**2)/(8.d0*pi*G))
-    rho_bg = 5.82/a**3.0
-    print *, "rho_bg  =", rho_bg
+    rho_bg = 1.35/a**3.0
+!    print *, "rho_bg  =", rho_bg
     tf%delta   = pf%rho/rho_bg - 1
-    print *, "delta   =", tf%delta
+!    print *, "delta   =", tf%delta
 
     sum = 0
     DO i=1,3
@@ -489,25 +494,26 @@ CONTAINS
        ! print *, sum
     END DO
     tf%theta   = (-1.0/(Hubble*a))*sum
-    print *, "theta   =", tf%theta
+!    print *, "theta   =", tf%theta
 
     sum=0
     DO i = 1,3
        DO j=1,3
-          sum = sum + sf%dd_kappa(i,j)
+          sum = sum + (1./(3.086*10**19.))*sf%dd_kappa(i,j) ! unit is in km/Mpch/sec^2
           !            print *, "sum j=", sum
        END DO
-       sum = sum + sf%dd_phi(i,i)
+       sum = sum + sf%dd_phi(i,i) ! unit is in km/Mpch/sec^2
        !            print *, "sum i=", sf%dd_phi(i,i)      
     END DO
     tf%As      = (1.0/rho_bg)*sum
-    print *, "As      =", tf%As
+!    print *, "sum      =", sum!tf%As
+!    print *, "As      =", tf%As
     sum=0
     DO i=1,3
        sum = sum + pf%dd_rho(i,i)
     END DO
     tf%d2delta = (1/rho_bg)*sum
-    print *, "d2delta =", tf%d2delta
+!    print *, "d2delta =", tf%d2delta
     sum=0
     DO i=1,3
        DO j=1,3
@@ -515,8 +521,8 @@ CONTAINS
        END DO
     END DO
     tf%d2theta = (-1.0/(Hubble*a)) * sum
-    print *, "d2theta =", tf%d2theta
-    print *, " "
+!    print *, "d2theta =", tf%d2theta
+!    print *, " "
 
   END SUBROUTINE tertiary_fields
 
@@ -530,26 +536,30 @@ CONTAINS
     type(secondaryfields) :: sf
     type(tertiaryfields)  :: tf
     type(snapshotdata)    :: snapdata
+    Integer :: particle_count
     ! Real    :: x(:,:),v(:,:)
     ! Real*8  :: a
 
 
-    call primary_fields(r,snapdata,xi,pf)
+    call primary_fields(r,snapdata,xi,pf,particle_count)
     call secondary_fields(pf,snapdata%a,sf)
     call tertiary_fields(snapdata%a,pf,sf,tf)
-    call write_to_file(pf,tf, rank,pid)
+    call write_to_file(pf,tf, rank,pid,snapdata%a, particle_count)
 
   end subroutine calculate_fields
 
   ! !********************************************************************************************************************
 
-    subroutine write_to_file(pf,tf,rank, pid)
+    subroutine write_to_file(pf,tf,rank, pid,a, particle_count)
       implicit none
       type(tertiaryfields) :: tf
       type(primaryfields)  :: pf
       ! character(len=8) :: fmt, x1
       ! character(len=50) :: filename ! format descriptor
       integer :: rank,pid
+      Real*8  :: a
+      Integer :: particle_count
+
       ! integer :: i1
 
       ! fmt = '(I3.3)' ! an integer of width 5 with zeros at the left
@@ -557,8 +567,8 @@ CONTAINS
       ! write (x1,fmt) i1 ! converting integer to string using a 'internal file'
       ! filename = 'data/tertiary_fields'//trim(x1)//'.dat'
       ! open(unit = rank,file=filename)
-      write(rank+10,"(/ I9, F17.6, F17.6, E17.6, E17.6, E17.6, E17.6)", advance='no') pid, pf%rho, tf%delta, &
-      tf%theta, tf%As, tf%d2delta, tf%d2theta
+      write(rank+10,"(/ I9, F17.6, F17.6, E17.6, E17.6, E17.6, E17.6, E10.6, I9)", advance='no') pid, pf%rho, tf%delta, &
+      tf%theta, tf%As, tf%d2delta, tf%d2theta, a, particle_count
       ! write(rank+10,*) rank, pf%rho
 
      ! close(rank) 
