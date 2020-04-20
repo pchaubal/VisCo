@@ -1,0 +1,47 @@
+\documentclass[11pt]{article}
+% General document formatting
+\usepackage[margin=1.2in]{geometry}
+\usepackage[parfill]{parskip}
+\usepackage[utf8]{inputenc}
+
+% Related to math
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{bm}
+
+
+\begin{document}
+
+\title{User guide for VisCo}
+\author{Arindam Mazumdar and Prakrut Chaubal}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+\textbf{V}is\textbf{C}o is a massively parallel Fortran code for calculating viscosity from correlation functions of N-body simulations. It calculates the correlations of density and velocity fields to obtain the value of viscosity arising due to smoothing of fields below a cutoff scale. In its current state, it does not employ tree algorithm and therefore scales as $~ N^2$ where N are the number of particles in the original N-body simulation.
+
+The code extensively uses message parsing interface (MPI) to communicate between processors. The main part of the code is written Fortran (free form) for computational efficiency. Portability of the code has not been verified but it is expected to run on all parallel systems due to use of standard MPI libraries. The code has been successfully tested to be compiles with open source MPI (GNU Fortran 5.5.0) as well as intel 2016 versions of MPI libraries.
+
+\newpage
+\section{Basic Usage}
+\subsection{Compilation requirements}
+
+\subsection{Starting a run}
+Upon following the steps in the previous section, an executable file with name `visco' is generated. To begin the analysis, invoke this executable with a command like:
+
+\texttt{mpirun -np 3 ./visco }
+
+where 3 processors are allocated to the task. The 
+
+
+
+\newpage
+\section{Postprocessing scripts}
+
+\newpage
+\section{Structure of code}
+
+\newpage
+\section{Examples}
+
+\end{document}
